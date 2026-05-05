@@ -33,6 +33,18 @@ class RecipeModel:
     def delete_recipe(self, name):
         self.recipes = [r for r in self.recipes if r["name"] != name]
         self.save_recipes()
+        
+    def update_recipe(self, old_name, updated_data):
+        for i, r in enumerate(self.recipes):
+            if r["name"] == old_name:
+                # Оновлюємо інгредієнти з рядка у список, як при додаванні
+                if isinstance(updated_data["ingredients"], str):
+                    updated_data["ingredients"] = [i.strip().lower() for i in updated_data["ingredients"].split(",") if i.strip()]
+                
+                self.recipes[i] = updated_data
+                self.save_recipes()
+                return True
+        return False
 
     def get_all_recipes(self, search_query="", category="Всі"):
         # Фільтрація для вкладки "Мої рецепти"
@@ -58,7 +70,7 @@ class RecipeModel:
             if excl_set.intersection(r_ings): continue
             
             if sel_set:
-                if sel_set.intersection(r_ings): results.append(r)
+                if sel_set.issubset(r_ings): results.append(r)
             else:
                 results.append(r)
         return results

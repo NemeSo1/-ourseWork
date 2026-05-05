@@ -12,7 +12,8 @@ TRANSLATIONS = {
         "inst_lbl": "Інструкції:", "time_lbl": "Час (хв):", "diff_lbl": "Складність:",
         "easy": "Легко", "medium": "Середньо", "hard": "Складно",
         "avail_ing_lbl": "Що є:", "excl_ing_lbl": "Без чого:",
-        "max_time_lbl": "Макс. час:", "search_res_lbl": "Результати:"
+        "max_time_lbl": "Макс. час:", "search_res_lbl": "Результати:",
+        "update_btn": "Оновити"
     },
     "en": {
         "title": "Recipe Book",
@@ -24,7 +25,8 @@ TRANSLATIONS = {
         "inst_lbl": "Instructions:", "time_lbl": "Time (min):", "diff_lbl": "Difficulty:",
         "easy": "Easy", "medium": "Medium", "hard": "Hard",
         "avail_ing_lbl": "Have:", "excl_ing_lbl": "Exclude:",
-        "max_time_lbl": "Max time:", "search_res_lbl": "Results:"
+        "max_time_lbl": "Max time:", "search_res_lbl": "Results:",
+        "update_btn": "Update"
     }
 }
 
@@ -47,7 +49,7 @@ class RecipeView:
         }
         self.current_theme = "light"
 
-        self.root.geometry("900x700")
+        self.center_window(self.root, 900, 700)
         self.create_menu()
         self.create_notebook()
         self.update_ui_text()
@@ -165,7 +167,7 @@ class RecipeView:
 
         self.btn_add = tk.Button(self.tab_manage, text="Додати", bg="#2196F3", fg="white")
         self.btn_add.grid(row=6, column=0, columnspan=2, sticky="ew", pady=5)
-
+        
         # Створюємо рамку для списку і скролбару
         list_frame = tk.Frame(self.tab_manage)
         list_frame.grid(row=7, column=0, columnspan=2, sticky="nsew") # row=7 або той, що у тебе
@@ -179,8 +181,21 @@ class RecipeView:
         self.recipes_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.config(command=self.recipes_listbox.yview)
         
-        self.btn_delete = tk.Button(self.tab_manage, text="Видалити", bg="#f44336", fg="white")
-        self.btn_delete.grid(row=8, column=0, columnspan=2, sticky="ew", pady=5)
+        # Створюємо фрейм-контейнер для кнопок дій
+        actions_frame = tk.Frame(self.tab_manage, bg=self.themes[self.current_theme]["bg"])
+        actions_frame.grid(row=8, column=0, columnspan=2, sticky="ew", pady=5)
+        
+        # Налаштовуємо колонки фрейму, щоб кнопки були однакової ширини
+        actions_frame.columnconfigure(0, weight=1)
+        actions_frame.columnconfigure(1, weight=1)
+
+        # Кнопка Оновити (тепер зліва)
+        self.btn_update = tk.Button(actions_frame, text="Оновити", bg="#FF9800", fg="white")
+        self.btn_update.grid(row=0, column=0, sticky="ew", padx=(0, 2))
+
+        # Кнопка Видалити (тепер справа)
+        self.btn_delete = tk.Button(actions_frame, text="Видалити", bg="#f44336", fg="white")
+        self.btn_delete.grid(row=0, column=1, sticky="ew", padx=(2, 0))
 
     def apply_theme(self):
         colors = self.themes[self.current_theme]
@@ -202,6 +217,7 @@ class RecipeView:
             self._recursive_style(child, colors)
 
     def update_ui_text(self):
+        self.root.title(self.t["title"])
         self.t = TRANSLATIONS[self.current_lang]
         self.menubar.entryconfig(1, label=self.t["lang_menu"])
         self.menubar.entryconfig(2, label=self.t["theme_menu"])
