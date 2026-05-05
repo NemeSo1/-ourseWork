@@ -11,7 +11,7 @@ class RecipeModel:
             try:
                 with open(self.filename, 'r', encoding='utf-8') as file:
                     return json.load(file)
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, FileNotFoundError):
                 return []
         return []
 
@@ -19,12 +19,14 @@ class RecipeModel:
         with open(self.filename, 'w', encoding='utf-8') as file:
             json.dump(self.recipes, file, ensure_ascii=False, indent=4)
 
-    def add_recipe(self, name, category, ingredients, instructions):
+    def add_recipe(self, name, category, ingredients, instructions, time, difficulty):
         new_recipe = {
             "name": name,
             "category": category,
             "ingredients": [i.strip().lower() for i in ingredients.split(',') if i.strip()],
-            "instructions": instructions.strip()
+            "instructions": instructions.strip(),
+            "time": int(time),
+            "difficulty": difficulty
         }
         self.recipes.append(new_recipe)
         self.save_data()
@@ -36,34 +38,32 @@ class RecipeModel:
     def get_all_recipes(self):
         return self.recipes
 
-    def search_by_ingredients(self, selected_ingredients, excluded_ingredients=None):
-        """
-        Пошук рецептів. 
-        Якщо є excluded_ingredients, рецепт відкидається.
-        Якщо вибрано selected_ingredients, шукає хоча б один збіг.
-        Якщо вибрано тільки виключення, показує всі безпечні рецепти.
-        """
-        if excluded_ingredients is None:
-            excluded_ingredients = []
-            
+    def search_recipes(self, selected_ingredients, excluded_ingredients, max_time, allowed_diffs):
         result = []
-        selected_set = set([i.lower() for i in selected_ingredients]) if selected_ingredients else set()
+        selected_set = set([i.lower() for i in selected_ingredients])
         excluded_set = set([i.lower() for i in excluded_ingredients])
         
         for recipe in self.recipes:
-            recipe_ing_set = set(recipe['ingredients'])
-            
-            # Якщо є заборонені інгредієнти, одразу пропускаємо цей рецепт
-            if excluded_set.intersection(recipe_ing_set):
+            # Фільтр по складності (якщо нічого не вибрано, показуємо всі)
+            recipe_diff = recipe.get('difficulty', 'easy')
+            if allowed_diffs and recipe_diff not in allowed_diffs:
                 continue
                 
-            # Якщо є бажані інгредієнти
+            recipe_ing_set = set(recipe['ingredients'])
+            
+            # Фільтр заборонених
+            if excluded_set.intersection(recipe_ing_set):
+                continue
+            
+            # Фільтр по часу
+            if recipe.get('time', 0) > max_time:
+                continue
+                
+            # Фільтр бажаних
             if selected_set:
                 if selected_set.intersection(recipe_ing_set):
                     result.append(recipe)
             else:
-                # Якщо ми нічого не шукали (або шукали ТІЛЬКИ "без цибулі"),
-                # додаємо цей рецепт, бо він пройшов перевірку вище
                 result.append(recipe)
                 
         return result
