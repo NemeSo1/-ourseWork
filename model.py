@@ -1,69 +1,64 @@
 import json
-import os
 
 class RecipeModel:
     def __init__(self, filename="recipes.json"):
         self.filename = filename
-        self.recipes = self.load_data()
+        self.recipes = self.load_recipes()
 
-    def load_data(self):
-        if os.path.exists(self.filename):
-            try:
-                with open(self.filename, 'r', encoding='utf-8') as file:
-                    return json.load(file)
-            except (json.JSONDecodeError, FileNotFoundError):
-                return []
-        return []
+    def load_recipes(self):
+        try:
+            with open(self.filename, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return []
 
-    def save_data(self):
-        with open(self.filename, 'w', encoding='utf-8') as file:
-            json.dump(self.recipes, file, ensure_ascii=False, indent=4)
+    def save_recipes(self):
+        with open(self.filename, "w", encoding="utf-8") as f:
+            json.dump(self.recipes, f, ensure_ascii=False, indent=4)
 
     def add_recipe(self, name, category, ingredients, instructions, time, difficulty):
+        # Перетворюємо рядок інгредієнтів у список
+        ing_list = [i.strip().lower() for i in ingredients.split(",") if i.strip()]
         new_recipe = {
             "name": name,
             "category": category,
-            "ingredients": [i.strip().lower() for i in ingredients.split(',') if i.strip()],
-            "instructions": instructions.strip(),
+            "ingredients": ing_list,
+            "instructions": instructions,
             "time": int(time),
             "difficulty": difficulty
         }
         self.recipes.append(new_recipe)
-        self.save_data()
+        self.save_recipes()
 
     def delete_recipe(self, name):
-        self.recipes = [r for r in self.recipes if r['name'] != name]
-        self.save_data()
+        self.recipes = [r for r in self.recipes if r["name"] != name]
+        self.save_recipes()
 
-    def get_all_recipes(self):
-        return self.recipes
+    def get_all_recipes(self, search_query="", category="Всі"):
+        # Фільтрація для вкладки "Мої рецепти"
+        filtered = self.recipes
+        if category != "Всі" and category != "All":
+            filtered = [r for r in filtered if r["category"] == category]
+        if search_query:
+            filtered = [r for r in filtered if search_query.lower() in r["name"].lower()]
+        return filtered
 
-    def search_recipes(self, selected_ingredients, excluded_ingredients, max_time, allowed_diffs):
-        result = []
-        selected_set = set([i.lower() for i in selected_ingredients])
-        excluded_set = set([i.lower() for i in excluded_ingredients])
+    def search_recipes(self, selected_ings, excluded_ings, max_time, allowed_diffs):
+        # Складний пошук для вкладки "Пошук страв"
+        results = []
+        sel_set = set([i.lower() for i in selected_ings])
+        excl_set = set([i.lower() for i in excluded_ings])
         
-        for recipe in self.recipes:
-            # Фільтр по складності (якщо нічого не вибрано, показуємо всі)
-            recipe_diff = recipe.get('difficulty', 'easy')
-            if allowed_diffs and recipe_diff not in allowed_diffs:
-                continue
-                
-            recipe_ing_set = set(recipe['ingredients'])
+        for r in self.recipes:
+            r_ings = set(r["ingredients"])
+            # Фільтр часу та складності
+            if r["time"] > max_time: continue
+            if allowed_diffs and r["difficulty"] not in allowed_diffs: continue
+            # Фільтр заборонених інгредієнтів
+            if excl_set.intersection(r_ings): continue
             
-            # Фільтр заборонених
-            if excluded_set.intersection(recipe_ing_set):
-                continue
-            
-            # Фільтр по часу
-            if recipe.get('time', 0) > max_time:
-                continue
-                
-            # Фільтр бажаних
-            if selected_set:
-                if selected_set.intersection(recipe_ing_set):
-                    result.append(recipe)
+            if sel_set:
+                if sel_set.intersection(r_ings): results.append(r)
             else:
-                result.append(recipe)
-                
-        return result
+                results.append(r)
+        return results

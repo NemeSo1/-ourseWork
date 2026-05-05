@@ -5,6 +5,7 @@ class RecipeController:
     def __init__(self, model, view):
         self.model = model
         self.view = view
+        self.view.show_loading()
         self.setup_bindings()
         self.update_recipe_lists()
 
@@ -22,6 +23,8 @@ class RecipeController:
         self.view.btn_search.config(command=self.search_recipes)
         self.view.recipes_listbox.bind("<Double-Button-1>", self.on_recipe_double_click)
         self.view.res_listbox.bind("<Double-Button-1>", self.on_recipe_double_click)
+
+        self.view.recipes_listbox.bind("<Delete>", lambda event: self.delete_recipe())
 
     def change_language(self, lang):
         self.view.current_lang = lang
@@ -66,33 +69,20 @@ class RecipeController:
         messagebox.showinfo("Успіх", f"Рецепт '{recipe_name}' видалено!")
 
     def search_recipes(self):
-        # Отримуємо вибрані бажані інгредієнти
-        sel_idx = self.view.ing_listbox.curselection()
-        selected = [self.view.ing_listbox.get(i) for i in sel_idx]
+        # Складний пошук за параметрами
+        s_idx = self.view.ing_listbox.curselection()
+        selected = [self.view.ing_listbox.get(i) for i in s_idx]
+        e_idx = self.view.excl_listbox.curselection()
+        excluded = [self.view.excl_listbox.get(i) for i in e_idx]
         
-        # Отримуємо вибрані заборонені інгредієнти
-        excl_idx = self.view.excl_listbox.curselection()
-        excluded = [self.view.excl_listbox.get(i) for i in excl_idx]
+        allowed = []
+        if self.view.search_diff_easy.get(): allowed.append("easy")
+        if self.view.search_diff_med.get(): allowed.append("medium")
+        if self.view.search_diff_hard.get(): allowed.append("hard")
         
-        # Отримуємо максимальний час приготування з повзунка
-        max_time = self.view.search_time_scale.get()
-        
-        # Отримуємо вибрані рівні складності з прапорців
-        allowed_diffs = []
-        if self.view.search_diff_easy.get(): 
-            allowed_diffs.append("easy")
-        if self.view.search_diff_med.get(): 
-            allowed_diffs.append("medium")
-        if self.view.search_diff_hard.get(): 
-            allowed_diffs.append("hard")
-        
-        # Викликаємо функцію пошуку з моделі, передаючи всі 4 параметри
-        results = self.model.search_recipes(selected, excluded, max_time, allowed_diffs)
-        
-        # Очищаємо список результатів на екрані та заповнюємо новими
+        res = self.model.search_recipes(selected, excluded, self.view.search_time_scale.get(), allowed)
         self.view.res_listbox.delete(0, tk.END)
-        for r in results:
-            self.view.res_listbox.insert(tk.END, r["name"])
+        for r in res: self.view.res_listbox.insert(tk.END, r["name"])
 
     def update_recipe_lists(self):
         self.view.recipes_listbox.delete(0, tk.END)

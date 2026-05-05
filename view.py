@@ -28,8 +28,12 @@ TRANSLATIONS = {
     }
 }
 
-INGREDIENTS_DATA = ["курка", "картопля", "помідор", "сир", "яйце", "молоко", "борошно", "цибуля", "часник"]
-
+INGREDIENTS_DATA = [
+    "курка", "картопля", "помідор", "сир", "яйце", "молоко", "борошно", "цибуля", "часник",
+    "огірок", "перець", "морква", "капуста", "гриби", "яловичина", "свинина", "риба", "креветки",
+    "рис", "гречка", "макарони", "олія", "масло", "сметана", "вершки", "цукор", "сіль", "мед",
+    "яблуко", "банан", "лимон", "зелень", "авокадо", "бекон", "баклажан", "кабачок", "горіхи"
+]
 class RecipeView:
     def __init__(self, root):
         self.root = root
@@ -162,8 +166,18 @@ class RecipeView:
         self.btn_add = tk.Button(self.tab_manage, text="Додати", bg="#2196F3", fg="white")
         self.btn_add.grid(row=6, column=0, columnspan=2, sticky="ew", pady=5)
 
-        self.recipes_listbox = tk.Listbox(self.tab_manage)
-        self.recipes_listbox.grid(row=7, column=0, columnspan=2, sticky="nsew")
+        # Створюємо рамку для списку і скролбару
+        list_frame = tk.Frame(self.tab_manage)
+        list_frame.grid(row=7, column=0, columnspan=2, sticky="nsew") # row=7 або той, що у тебе
+        
+        # Створюємо скролбар
+        scrollbar = tk.Scrollbar(list_frame, orient="vertical")
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Створюємо Listbox і прив'язуємо до скролбару
+        self.recipes_listbox = tk.Listbox(list_frame, yscrollcommand=scrollbar.set)
+        self.recipes_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.config(command=self.recipes_listbox.yview)
         
         self.btn_delete = tk.Button(self.tab_manage, text="Видалити", bg="#f44336", fg="white")
         self.btn_delete.grid(row=8, column=0, columnspan=2, sticky="ew", pady=5)
@@ -244,3 +258,40 @@ class RecipeView:
         
         # Кнопка ОК
         tk.Button(dialog, text="OK", command=dialog.destroy).pack(pady=10)
+        
+    def show_loading(self):
+        self.root.withdraw()
+        
+        loading_window = tk.Toplevel(self.root)
+        loading_window.title("Завантаження")
+        loading_window.overrideredirect(True)
+        self.center_window(loading_window, 300, 100) 
+        
+        tk.Label(loading_window, text="Завантаження бази даних...", font=("Arial", 10, "bold")).pack(pady=(15, 10))
+        
+        progress = ttk.Progressbar(loading_window, orient="horizontal", length=250, mode="determinate")
+        progress.pack()
+        
+        # Імітуємо завантаження
+        for i in range(0, 201, 2):
+            progress["value"] = i
+            loading_window.update()
+            self.root.after(10) # пауза
+            
+        # Знищуємо віконце завантаження
+        loading_window.destroy()
+        self.root.deiconify()
+        self.root.lift()
+        self.root.focus_force()
+        
+    def center_window(self, window, width, height):
+        # Отримуємо розміри екрану користувача
+        screen_width = window.winfo_screenwidth()
+        screen_height = window.winfo_screenheight()
+        
+        # Вираховуємо координати X та Y для центру
+        x = int((screen_width / 2) - (width / 2))
+        y = int((screen_height / 2) - (height / 2))
+        
+        # Встановлюємо розмір і позицію вікна на екрані
+        window.geometry(f"{width}x{height}+{x}+{y}")
