@@ -4,15 +4,16 @@ from view import RecipeView
 from controller import RecipeController
 
 def main():
-    root = tk.Tk()
-    
     # Ініціалізація компонентів MVC
     model = RecipeModel("recipes.json")
-    view = RecipeView(root)
+    
+    # Створюємо view без передачі root (бо RecipeView сам створює вікно)
+    view = RecipeView() 
+    
     controller = RecipeController(model, view)
     
-    # Запуск головного циклу обробки подій
-    root.mainloop()
+    # Запускаємо цикл обробки подій через об'єкт view
+    view.mainloop()
 
 if __name__ == "__main__":
     main()

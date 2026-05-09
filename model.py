@@ -17,8 +17,8 @@ class RecipeModel:
             json.dump(self.recipes, f, ensure_ascii=False, indent=4)
 
     def add_recipe(self, name, category, ingredients, instructions, time, difficulty):
-        # Перетворюємо рядок інгредієнтів у список
         ing_list = [i.strip().lower() for i in ingredients.split(",") if i.strip()]
+        if not category: category = "Other"
         new_recipe = {
             "name": name,
             "category": category,
@@ -33,44 +33,39 @@ class RecipeModel:
     def delete_recipe(self, name):
         self.recipes = [r for r in self.recipes if r["name"] != name]
         self.save_recipes()
-        
+
     def update_recipe(self, old_name, updated_data):
         for i, r in enumerate(self.recipes):
             if r["name"] == old_name:
-                # Оновлюємо інгредієнти з рядка у список, як при додаванні
                 if isinstance(updated_data["ingredients"], str):
                     updated_data["ingredients"] = [i.strip().lower() for i in updated_data["ingredients"].split(",") if i.strip()]
-                
                 self.recipes[i] = updated_data
                 self.save_recipes()
                 return True
         return False
 
-    def get_all_recipes(self, search_query="", category="Всі"):
-        # Фільтрація для вкладки "Мої рецепти"
-        filtered = self.recipes
-        if category != "Всі" and category != "All":
-            filtered = [r for r in filtered if r["category"] == category]
-        if search_query:
-            filtered = [r for r in filtered if search_query.lower() in r["name"].lower()]
-        return filtered
+    def get_all_recipes(self):
+        return self.recipes
 
-    def search_recipes(self, selected_ings, excluded_ings, max_time, allowed_diffs):
-        # Складний пошук для вкладки "Пошук страв"
+    def search_recipes(self, selected_ings, excluded_ings, max_time, allowed_diffs, allowed_cats):
         results = []
         sel_set = set([i.lower() for i in selected_ings])
         excl_set = set([i.lower() for i in excluded_ings])
-        
+
         for r in self.recipes:
-            r_ings = set(r["ingredients"])
-            # Фільтр часу та складності
+            # Фільтр по часу
             if r["time"] > max_time: continue
-            if allowed_diffs and r["difficulty"] not in allowed_diffs: continue
-            # Фільтр заборонених інгредієнтів
-            if excl_set.intersection(r_ings): continue
             
-            if sel_set:
-                if sel_set.issubset(r_ings): results.append(r)
-            else:
-                results.append(r)
+            # Фільтр по складності
+            if allowed_diffs and r["difficulty"] not in allowed_diffs: continue
+            
+            # НОВИЙ Фільтр по категоріях
+            if allowed_cats and r.get("category", "Other") not in allowed_cats: continue
+
+            # Фільтр по інгредієнтах
+            r_ings = set(r["ingredients"])
+            if excl_set.intersection(r_ings): continue
+            if sel_set and not sel_set.issubset(r_ings): continue
+            
+            results.append(r)
         return results
