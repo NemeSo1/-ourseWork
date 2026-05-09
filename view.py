@@ -498,7 +498,8 @@ class RecipeView(tk.Tk):
             self.btn_add.config(text=self.t["save_btn"])
         else:
             self.btn_add.config(text=self.t["add_btn"])
-            
+        
+        self.btn_cancel.config(text=self.t["cancel_btn"])
         self.btn_update.config(text=self.t["update_btn"])
         self.btn_delete.config(text=self.t["del_btn"])
         

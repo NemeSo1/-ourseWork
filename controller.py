@@ -364,4 +364,3 @@ class RecipeController:
 
         # При наступному кліку сортуємо навпаки
         tree.heading(col, command=lambda: self.sort_column(tree, col, not reverse))
-        

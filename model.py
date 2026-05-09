@@ -53,16 +53,9 @@ class RecipeModel:
         excl_set = set([i.lower() for i in excluded_ings])
 
         for r in self.recipes:
-            # Фільтр по часу
             if r["time"] > max_time: continue
-            
-            # Фільтр по складності
             if allowed_diffs and r["difficulty"] not in allowed_diffs: continue
-            
-            # НОВИЙ Фільтр по категоріях
             if allowed_cats and r.get("category", "Other") not in allowed_cats: continue
-
-            # Фільтр по інгредієнтах
             r_ings = set(r["ingredients"])
             if excl_set.intersection(r_ings): continue
             if sel_set and not sel_set.issubset(r_ings): continue
