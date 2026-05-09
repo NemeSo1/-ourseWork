@@ -20,7 +20,8 @@ TRANSLATIONS = {
         "confirm_del_msg": "Ви впевнені, що хочете видалити цей рецепт?",
         "error_title": "Помилка",
         "fields_error": "Будь ласка, заповніть всі обов'язкові поля!",
-        "categories": ["Сніданок", "Обід", "Вечеря", "Десерт"],
+        "error_diff": "Будь ласка, оберіть складність страви!",
+        "categories": ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше" ],
         "app_title": "КНИГА РЕЦЕПТІВ",
         "menu_lang": "Мова",
         "menu_theme": "Тема"
@@ -43,7 +44,8 @@ TRANSLATIONS = {
         "confirm_del_msg": "Are you sure you want to delete this recipe?",
         "error_title": "Error",
         "fields_error": "Please fill in all fields!",
-        "categories": ["Breakfast", "Lunch", "Dinner", "Dessert"],
+        "error_diff": "Please select the difficulty level!",
+        "categories": ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Other"],
         "app_title": "RECIPE BOOK",
         "menu_lang": "Language",
         "menu_theme": "Theme"
@@ -68,7 +70,7 @@ class RecipeView(tk.Tk):
         
         self.selected_avail = set()
         self.selected_excl = set()
-        self.search_hidden = True 
+        self.search_hidden = True
         
         self.themes = {
             "light": {
@@ -115,7 +117,12 @@ class RecipeView(tk.Tk):
         self.create_notebook()
         self.update_ui_text()
         self.apply_theme()
-
+               
+        # Прив'язка до всього головного вікна (виправляємо self.root на self)
+        self.bind("<Control-s>", lambda event: self.btn_add.invoke())
+        self.bind("<Control-n>", lambda event: self.clear_form())
+        
+       
     def _configure_fonts_and_styles(self):
         self.fonts = {
             "main": ("Segoe UI", 10),
@@ -301,7 +308,7 @@ class RecipeView(tk.Tk):
         self.lbl_cat.grid(row=4, column=0, **grid_p)
         
         # ВИПРАВЛЕНО: беремо значення зі словника (self.t["categories"])
-        self.combo_cat = ttk.Combobox(self.form_frame, values=self.t.get("categories", ["Сніданок", "Обід", "Вечеря", "Десерт"]), state="readonly", width=30)
+        self.combo_cat = ttk.Combobox(self.form_frame, values=self.t.get("categories", ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше"]), state="readonly", width=30)
         self.combo_cat.current(0)
         self.combo_cat.grid(row=4, column=1, **grid_p, padx=(10,0))
 
@@ -369,7 +376,7 @@ class RecipeView(tk.Tk):
         
         scr_m = ttk.Scrollbar(self.manage_main_frame, command=self.manage_tree.yview); self.manage_tree.configure(yscrollcommand=scr_m.set)
         self.manage_tree.pack(side=tk.LEFT, expand=True, fill="both"); scr_m.pack(side=tk.LEFT, fill=tk.Y)
-    
+
     def _toggle_search_bar(self):
         if self.search_hidden:
             self.hidden_search_frame.pack(fill=tk.X, before=self.manage_tree, pady=(0, 10))
@@ -511,7 +518,7 @@ class RecipeView(tk.Tk):
         # --- Комбобокс категорій (ВИПРАВЛЕНО ТУТ) ---
         current_idx = self.combo_cat.current()
         # Безпечно беремо список категорій, якщо його раптом немає у словнику - даємо дефолтний
-        self.combo_cat['values'] = self.t.get("categories", ["Сніданок", "Обід", "Вечеря", "Десерт"])
+        self.combo_cat['values'] = self.t.get("categories", ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше"])
         if current_idx >= 0:
             self.combo_cat.current(current_idx)
         
@@ -577,8 +584,8 @@ class RecipeView(tk.Tk):
         self.text_inst.config(state="normal")
         self.text_inst.delete("1.0", tk.END)
         self.time_scale.set(30)
-        self.combo_cat.set("") # Очищаємо комбобокс категорії
-        self.diff_var.set("Easy")
+        self.combo_cat.set("")
+        self.diff_var.set("none")
         
         # Повертаємо кнопці оригінальний текст "Додати" через словник
         self.btn_add.config(text=self.t.get("add_btn", "Додати рецепт"))
@@ -595,8 +602,8 @@ class RecipeView(tk.Tk):
         
         # --- Спрощена логіка (в базі тепер завжди українська) ---
         saved_cat = r.get('category', 'Інше')
-        cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Інше"]
-        cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Other"]
+        cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска" "Інше"]
+        cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Other"]
         
         if self.current_lang == "en" and saved_cat in cats_uk:
             display_cat = cats_en[cats_uk.index(saved_cat)]

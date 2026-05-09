@@ -18,7 +18,7 @@ class RecipeModel:
 
     def add_recipe(self, name, category, ingredients, instructions, time, difficulty):
         ing_list = [i.strip().lower() for i in ingredients.split(",") if i.strip()]
-        if not category: category = "Other"
+        if not category: category = "Інше"
         new_recipe = {
             "name": name,
             "category": category,

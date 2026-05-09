@@ -14,6 +14,8 @@ class RecipeController:
         self.update_manage_list() # Перше завантаження
         self.refresh_category_filters()
         
+        self.view.clear_form()
+        
 
     def setup_bindings(self):
         v = self.view
@@ -104,8 +106,8 @@ class RecipeController:
             
         # --- 3. ПІДГОТОВКА ДАНИХ ДЛЯ ВІДОБРАЖЕННЯ (Переклад категорій) ---
         display_recipes = []
-        cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Інше"]
-        cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Other"]
+        cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше"]
+        cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Other"]
         
         for r in self._manage_recipes:
             # Робимо копію рецепта, щоб не змінювати оригінальні дані в моделі
@@ -185,8 +187,8 @@ class RecipeController:
         for item in tree.get_children(): 
             tree.delete(item)
         
-        cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Інше"]
-        cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Other"]
+        cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше"]
+        cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Other"]
         
         for r in data:
             # 1. Переклад категорії
@@ -218,28 +220,37 @@ class RecipeController:
             if self._editing_recipe_name:
                 self.save_update(self._editing_recipe_name)
             return
+        
 
         # Отримуємо дані з форми
         d = self.view.get_form_data()
         
         # --- МАПІНГ: Завжди зберігаємо категорію українською ---
-        cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Інше"]
-        cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Other"]
+        cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше"]
+        cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Other"]
         
         if self.view.current_lang == "en" and d["category"] in cats_en:
             idx = cats_en.index(d["category"])
             d["category"] = cats_uk[idx]
-        # --------------------------------------------------------
+
 
         if not d["name"] or not d["ingredients"]:
             messagebox.showerror("Помилка", self.view.t.get("err_fill", "Заповніть обов'язкові поля!"))
+            return
+        
+        diff_value = d.get("difficulty")
+        if not diff_value or diff_value == "none" or diff_value == "0":
+            err_title = v.t.get("error_title", "Помилка")
+            err_msg = v.t.get("error_diff", "Будь ласка, оберіть складність страви!")
+            messagebox.showerror(err_title, err_msg)
             return
         
         # Перевірка на існування
         existing_names = [r["name"].lower() for r in self.model.get_all_recipes()]
         if d["name"].lower() in existing_names:
             messagebox.showerror("Помилка", self.view.t.get("err_exists", "Рецепт з такою назвою вже існує!")); return
-
+            
+            
         # Додаємо рецепт (тепер у d["category"] гарантовано українська назва)
         self.model.add_recipe(d["name"], d["category"], d["ingredients"], d["instructions"], d["time"], d["difficulty"])
         self.update_manage_list()
@@ -268,8 +279,8 @@ class RecipeController:
         d = self.view.get_form_data()
         
         # --- МАПІНГ: Завжди зберігаємо категорію українською ---
-        cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Інше"]
-        cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Other"]
+        cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше"]
+        cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Other"]
         
         if self.view.current_lang == "en" and d["category"] in cats_en:
             idx = cats_en.index(d["category"])
