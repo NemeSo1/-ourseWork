@@ -1,17 +1,15 @@
 import tkinter as tk
-from tkinter import messagebox
-
+from tkinter import messagebox, filedialog
 class RecipeController:
     def __init__(self, model, view):
         self.model = model
         self.view = view
         
-        # Стан сортування таблиці керування
-        self._manage_recipes = [] # Зберігаємо завантажені рецепти
+        self._manage_recipes = []
         self._search_results = []
         
         self.setup_bindings()
-        self.update_manage_list() # Перше завантаження
+        self.update_manage_list()
         self.refresh_category_filters()
         
         self.view.clear_form()
@@ -20,7 +18,7 @@ class RecipeController:
     def setup_bindings(self):
         v = self.view
         
-        if hasattr(v, 'btn_cancel'):  # Або як у тебе називається ця кнопка
+        if hasattr(v, 'btn_cancel'):
             v.btn_cancel.config(command=self.cancel_edit_action)
             
         # Меню (збережено)
@@ -30,7 +28,7 @@ class RecipeController:
         v.theme_menu.add_command(label="Dark", command=lambda: self.change_theme("dark"))
 
         # Кнопки дій (збережено)
-        v.btn_add.config(command=self.add_recipe_action) # Спочатку це Add
+        v.btn_add.config(command=self.add_recipe_action)
         v.btn_update.config(command=self.prepare_update)
         v.btn_delete.config(command=self.delete_recipe_action)
         v.btn_search.config(command=self.search_dishes_action)
@@ -39,7 +37,7 @@ class RecipeController:
         v.manage_tree.bind("<Double-Button-1>", lambda e: self.on_tree_double_click("manage"))
         v.search_tree.bind("<Double-Button-1>", lambda e: self.on_tree_double_click("search"))
         
-        # --- Сортування при клацанні на заголовок (NEW) ---
+        # --- Сортування при клацанні на заголовок
         # Керування: Назва, Категорія
         def make_manage_sort(col, key_func):
             def sort_command():
@@ -63,6 +61,7 @@ class RecipeController:
                 self._sort_tree_data(self._search_results, v.search_tree, "search", key_func)
                 self.update_search_tree_ui()
             return sort_command
+        
 
         # Прив'язка заголовків Пошуку
         diff_weights = {"easy": 1, "medium": 2, "hard": 3}
@@ -71,12 +70,13 @@ class RecipeController:
         self._cmd_sort_stime = make_search_sort("time", lambda r: float(r.get("time", 0)))
         self._cmd_sort_sdiff = make_search_sort("diff", lambda r: diff_weights.get(r.get("difficulty", "easy").lower(), 0))
         
-        # Додай це в кінець методу setup_bindings
+        self.view.menubar.add_command(label=self.view.t["menu_fav"], command=self.show_favorites_list)
+        
         for tree in [v.search_tree, v.manage_tree]:
             for col in ("name", "cat", "time", "diff"):
                 tree.heading(col, command=lambda t=tree, c=col: self.sort_column(t, c, False))
 
-        # --- Вбудований пошук Керування (NEW) ---
+        # Вбудований пошук Керування
         v.search_ing_entry.bind("<KeyRelease>", lambda e: self.update_manage_list())
         
         if hasattr(v, 'manage_tree'):
@@ -85,50 +85,66 @@ class RecipeController:
             # Замініть `self.delete_recipe_action` на вашу точну назву методу для видалення
 
         # 2. Пошук рецепту клавішею Enter
-        # Можна прив'язати Enter до всього вікна, але краще до полів вводу на вкладці пошуку
-        # Припустимо, у вас є поле вводу інгредієнтів v.avail_ing_entry
-        if hasattr(v, 'search_dishes_action'): # Або інша назва вашого поля пошуку
+        if hasattr(v, 'search_dishes_action'):
             v.search_dishes_action.bind("<Return>", lambda event: self.search_dishes_action())
             
-        # Як альтернатива: прив'язати Enter глобально, але з перевіркою вкладки
         if hasattr(v, 'root'):
             v.root.bind("<Return>", self._handle_enter)
             
     def _handle_enter(self, event):
-        # Щоб Enter працював як "Пошук" тільки на вкладці пошуку
-        # Перевіряємо активну вкладку (якщо використовується ttk.Notebook)
         if hasattr(self.view, 'notebook'):
             current_tab_id = self.view.notebook.select()
             current_tab_index = self.view.notebook.index(current_tab_id)
-            if current_tab_index == 0:  # Припустимо, що 0 - це вкладка "Пошук"
-                self.search_dishes_action() # Замініть на ваш метод пошуку
+            if current_tab_index == 0:
+                self.search_dishes_action()
 
     # --- ЗАГАЛЬНІ ДІЇ ---
     def change_language(self, lang):
         self.view.current_lang = lang
         self.view.update_ui_text()
         self.view.clear_form()
-        self.update_manage_list() # Оновлює 2-гу вкладку
+        self.update_manage_list()
     
-    # ДОДАЙ ЦІ РЯДКИ ДЛЯ 1-Ї ВКЛАДКИ:
-    # 1. Перемальовуємо галочки категорій (щоб вони підхопили нову мову)
+
         self.refresh_category_filters()
     
-    # 2. Якщо в таблиці пошуку вже є якісь результати, перемальовуємо їх (щоб оновився переклад в колонках)
         if self._search_results:
             self._fill_tree(self._search_results, self.view.search_tree, "search")
 
     def change_theme(self, theme_name):
         self.view.current_theme = theme_name
         self.view.apply_theme()
-
-    # --- УПРАВЛІННЯ ДАНИМИ Treeview (Керування) ---
-    # --- УПРАВЛІННЯ ДАНИМИ Treeview (Керування) ---
+        
+    def export_to_txt(self, r):
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Text files", "*.txt")],
+            initialfile=f"{r['name']}.txt",
+            title="Зберегти рецепт"
+        )
+        
+        if file_path:
+            try:
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(f"РЕЦЕПТ: {r['name']}\n")
+                    f.write(f"Категорія: {r.get('category', 'Інше')}\n")
+                    f.write(f"Час: {r['time']} хв | Складність: {r['difficulty']}\n")
+                    f.write("-" * 30 + "\n")
+                    f.write("ІНГРЕДІЄНТИ:\n")
+                    for ing in r['ingredients']:
+                        f.write(f" - {ing}\n")
+                    f.write("-" * 30 + "\n")
+                    f.write("ІНСТРУКЦІЇ:\n")
+                    f.write(r['instructions'])
+                
+                messagebox.showinfo("Успіх", "Рецепт успішно збережено у файл!")
+            except Exception as e:
+                messagebox.showerror("Помилка", f"Не вдалося зберегти файл: {e}")
+                
+    # УПРАВЛІННЯ ДАНИМИ Treeview
     def update_manage_list(self):
-        # 1. Завантажити дані з моделі
         self._manage_recipes = self.model.get_all_recipes()
         
-        # 2. Фільтрація: перевіряємо, чи починається назва з введених літер
         search_query = self.view.search_ing_var.get().strip().lower()
         if search_query:
             self._manage_recipes = [
@@ -136,28 +152,21 @@ class RecipeController:
                 if any(word.startswith(search_query) for word in r["name"].lower().split())
             ]
             
-        # --- 3. ПІДГОТОВКА ДАНИХ ДЛЯ ВІДОБРАЖЕННЯ (Переклад категорій та складності) ---
         display_recipes = []
         
         for r in self._manage_recipes:
-            # Робимо копію рецепта, щоб не змінювати оригінальні дані в базі (це дуже правильно!)
             r_copy = r.copy()
             
-            # Беремо оригінальні значення з бази (якщо їх раптом немає - даємо дефолтні)
             raw_cat = r_copy.get("category", "Інше")
-            raw_diff = r_copy.get("difficulty", "easy") # або "Середньо", залежно від того, як ти зберігаєш
+            raw_diff = r_copy.get("difficulty", "easy")
             
-            # МАГІЯ: Перекладаємо все через наш словник одним рядком
             r_copy["category"] = self.view.t.get(raw_cat, raw_cat)
             r_copy["difficulty"] = self.view.t.get(raw_diff, raw_diff)
             
             display_recipes.append(r_copy)
-        # ---------------------------------------------------------------
 
-        # 4. Вивести в таблицю (використовуємо display_recipes замість оригіналу)
         self._fill_tree(display_recipes, self.view.manage_tree, "manage")
         
-        # Оновити заголовки (скинути стрілки)
         self.update_manage_tree_ui()
         
     def update_manage_tree_ui(self):
@@ -167,7 +176,7 @@ class RecipeController:
         v.set_tree_heading("manage", "time", v.t["time_lbl"], self._cmd_sort_mtime)
         v.set_tree_heading("manage", "diff", v.t["diff_lbl"], self._cmd_sort_mdiff)
 
-    # --- УПРАВЛІННЯ ДАНИМИ Treeview (Пошук) ---
+    # УПРАВЛІННЯ ДАНИМИ Treeview (Пошук)
     def search_dishes_action(self):
         v = self.view
         
@@ -175,7 +184,6 @@ class RecipeController:
         v.selected_avail.clear()
         v.selected_excl.clear()
 
-        # Збираємо тільки те, що ВИДІЛЕНО в списках зараз
         for i in v.ing_listbox.curselection():
             v.selected_avail.add(v.ing_listbox.get(i))
         for i in v.excl_listbox.curselection():
@@ -190,12 +198,10 @@ class RecipeController:
         if v.search_diff_med.get(): allowed_diffs.append("medium")
         if v.search_diff_hard.get(): allowed_diffs.append("hard")
         
-        # 3. ФІЛЬТРИ КАТЕГОРІЙ (Нове!)
-        # Збираємо назви категорій, де стоїть галочка (var.get() == True)
+        # 3. ФІЛЬТРИ КАТЕГОРІЙ
         allowed_cats = [cat for cat, var in v.cat_vars.items() if var.get()]
         
         # 4. ВИКЛИК МОДЕЛІ
-        # Додаємо allowed_cats як новий аргумент
         self._search_results = self.model.search_recipes(
             sel, 
             excl, 
@@ -215,7 +221,7 @@ class RecipeController:
         v.set_tree_heading("search", "time", v.t["time_lbl"], self._cmd_sort_stime)
         v.set_tree_heading("search", "diff", v.t["diff_lbl"], self._cmd_sort_sdiff)
 
-    # --- ДОПОМІЖНІ ФУНКЦІЇ ЗАПОВНЕННЯ/СОРТУВАННЯ Treeview ---
+    # ДОПОМІЖНІ ФУНКЦІЇ ЗАПОВНЕННЯ/СОРТУВАННЯ Treeview
     def _fill_tree(self, data, tree, tree_key):
         for item in tree.get_children(): 
             tree.delete(item)
@@ -239,26 +245,22 @@ class RecipeController:
             tree.insert("", tk.END, values=values, tags=(r["name"],))
 
     def _sort_tree_data(self, data, tree, tree_key, key_func):
-        # Сортування списку даних
         is_asc = self.view._manage_sort_asc if tree_key == "manage" else self.view._search_sort_asc
         data.sort(key=key_func, reverse=not is_asc)
-        # Перемалювати таблицю
         self._fill_tree(data, tree, tree_key)
 
-    # --- ДІЇ НАД РЕЦЕПТАМИ (збережено та адаптовано) ---
+    # ДІЇ НАД РЕЦЕПТАМИ
     def add_recipe_action(self):
         v = self.view
-        # Якщо ми в режимі Save, це функція Update. Якщо в Add — функція Add.
         if self.view.btn_add.cget("text") == self.view.t["save_btn"]:
             if self._editing_recipe_name:
                 self.save_update(self._editing_recipe_name)
             return
         
 
-        # Отримуємо дані з форми
         d = self.view.get_form_data()
         
-        # --- МАПІНГ: Завжди зберігаємо категорію українською ---
+        # МАПІНГ
         cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше"]
         cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Other"]
         
@@ -284,7 +286,7 @@ class RecipeController:
             messagebox.showerror("Помилка", self.view.t.get("err_exists", "Рецепт з такою назвою вже існує!")); return
             
             
-        # Додаємо рецепт (тепер у d["category"] гарантовано українська назва)
+        # Додаємо рецепт
         self.model.add_recipe(d["name"], d["category"], d["ingredients"], d["instructions"], d["time"], d["difficulty"])
         self.update_manage_list()
         self.view.clear_form()
@@ -293,32 +295,65 @@ class RecipeController:
         messagebox.showinfo("Успіх", success_msg)
         
     def prepare_update(self):
-        # Адаптовано для Treeview
         sel = self.view.manage_tree.selection()
         if not sel:
             messagebox.showwarning("Увага", "Виберіть рецепт для редагування!")
             return
         
-        # Отримуємо ім'я з tags (збережено при вставці)
         recipe_name = self.view.manage_tree.item(sel[0], "tags")[0]
         
-        # Знайти рецепт
         recipe = next((r for r in self._manage_recipes if r["name"] == recipe_name), None)
         if recipe:
-            self.view.fill_form(recipe) # Заповнити форму, змінити кнопку на Save
-            self._editing_recipe_name = recipe_name # Зберегти старе ім'я для оновлення
+            self.view.fill_form(recipe)
+            self._editing_recipe_name = recipe_name
 
+    def show_favorites_list(self):
+        all_recipes = self.model.get_all_recipes()
+        
+        favs = [r for r in all_recipes if r.get("is_favorite") == True]
+        
+        fav_win = tk.Toplevel(self.view)
+        fav_win.title(self.view.t["fav_win_title"])
+        fav_win.geometry("400x500")
+        c = self.view.themes[self.view.current_theme]
+        fav_win.config(bg=c["surface"])
+        
+        tk.Label(fav_win, text=self.view.t["fav_win_header"], font=self.view.fonts["logo"], 
+                 bg=c["surface"], fg=c["accent"]).pack(pady=15)
+        
+        if not favs:
+            tk.Label(fav_win, text=self.view.t["fav_empty"], font=self.view.fonts["main"], 
+                     bg=c["surface"], fg=c["fg_muted"]).pack(pady=20)
+            return
+
+        lb = tk.Listbox(fav_win, bg=c["input_bg"], fg=c["fg"], 
+                        font=self.view.fonts["main"], borderwidth=0, 
+                        selectbackground=c["accent"], highlightthickness=0)
+        lb.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        
+        for r in favs:
+            lb.insert(tk.END, r["name"])
+            
+        def open_fav(event):
+            selection = lb.curselection()
+            if selection:
+                name = lb.get(selection[0])
+                recipe = next((rc for rc in favs if rc["name"] == name), None)
+                if recipe:
+                    self.view.show_custom_details_dialog(recipe, self.toggle_favorite_action, self.export_to_txt)
+        
+        lb.bind("<Double-1>", open_fav)
+        
     def save_update(self, old_name):
         d = self.view.get_form_data()
         
-        # --- МАПІНГ: Завжди зберігаємо категорію українською ---
+        # МАПІНГ: Завжди зберігаємо категорію українською
         cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше"]
         cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Other"]
         
         if self.view.current_lang == "en" and d["category"] in cats_en:
             idx = cats_en.index(d["category"])
             d["category"] = cats_uk[idx]
-        # --------------------------------------------------------
 
         # Перевірка на порожні поля
         if not d["name"] or not d["ingredients"]:
@@ -342,7 +377,6 @@ class RecipeController:
             self._editing_recipe_name = None
 
     def delete_recipe_action(self):
-        # Адаптовано для Treeview
         sel = self.view.manage_tree.selection()
         if not sel:
             messagebox.showwarning("Увага", "Виберіть рецепт для видалення!")
@@ -360,35 +394,38 @@ class RecipeController:
             self.model.delete_recipe(recipe_name)
             self.update_manage_list()
             messagebox.showinfo("Успіх", f"Рецепт '{recipe_name}' видалено!")
+            
+    def toggle_favorite_action(self, name, label_widget):
+        new_status = self.model.toggle_favorite(name)
+        
+        star_symbol = "★" if new_status else "☆"
+        fav_color = "#3498db" if new_status else self.view.themes[self.view.current_theme]["fg_muted"]
+        
+        label_widget.config(text=star_symbol, fg=fav_color)
+        
+        self.update_manage_list()
 
     # --- ДІЇ Treeview ---
     def on_tree_double_click(self, tree_key):
-        # Адаптовано для Treeview (показ діалогу деталей)
         tree = self.view.manage_tree if tree_key == "manage" else self.view.search_tree
         sel = tree.selection()
         if sel:
             recipe_name = tree.item(sel[0], "tags")[0]
-            # Шукаємо рецепт у поточному списку
             cur_data = self._manage_recipes if tree_key == "manage" else self._search_results
             r = next((rc for rc in cur_data if rc["name"] == recipe_name), None)
             if r:
-                self.view.show_custom_details_dialog(r)
+                self.view.show_custom_details_dialog(r, self.toggle_favorite_action, self.export_to_txt)
                 
     def refresh_category_filters(self):
-        # Отримуємо всі унікальні категорії з моделі
         recipes = self.model.get_all_recipes()
         categories = sorted(list(set(r.get("category", "Other") for r in recipes)))
-        # Кажемо в'юшці намалювати галочки
         self.view.update_category_widgets(categories)
         
     def cancel_edit_action(self):
-        # Очищаємо форму
         self.view.clear_form()
         
-        # Скидаємо змінну, щоб контролер забув, що ми щось редагували
         self._editing_recipe_name = None
         
-        # І ось ТУТ знімаємо фіолетове виділення з таблиці
         if hasattr(self.view, 'manage_tree'):
             sel = self.view.manage_tree.selection()
             if sel:
@@ -397,7 +434,6 @@ class RecipeController:
     def sort_column(self, tree, col, reverse):
         data = [(tree.set(k, col), k) for k in tree.get_children('')]
     
-        # Сортуємо: числа як числа, текст як текст
         try:
             data.sort(key=lambda t: float(t[0]), reverse=reverse)
         except ValueError:
@@ -406,5 +442,5 @@ class RecipeController:
         for index, (val, k) in enumerate(data):
             tree.move(k, '', index)
 
-        # При наступному кліку сортуємо навпаки
         tree.heading(col, command=lambda: self.sort_column(tree, col, not reverse))
+        

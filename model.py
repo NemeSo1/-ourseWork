@@ -62,3 +62,11 @@ class RecipeModel:
             
             results.append(r)
         return results
+    
+    def toggle_favorite(self, name):
+        for r in self.recipes:
+            if r["name"] == name:
+                r["is_favorite"] = not r.get("is_favorite", False)
+                self.save_recipes()
+                return r["is_favorite"]
+        return False

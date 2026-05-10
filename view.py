@@ -9,6 +9,10 @@ TRANSLATIONS = {
         "menu_lang": "Мова", "menu_theme": "Тема",
         "lang_menu": "Мова", "theme_menu": "Тема",
         "light_theme": "Світла", "dark_theme": "Темна",
+        "menu_fav": "⭐ Улюблені",
+        "fav_win_title": "Мої улюблені страви",
+        "fav_win_header": "⭐ Улюблені рецепти",
+        "fav_empty": "Список порожній",
         
         "search_btn": "Знайти рецепти", "add_btn": "Додати рецепт", "del_btn": "Видалити",
         "update_btn": "Оновити", "save_btn": "Зберегти", "cancel_btn": "Скасувати",
@@ -41,6 +45,10 @@ TRANSLATIONS = {
         "menu_lang": "Language", "menu_theme": "Theme",
         "lang_menu": "Language", "theme_menu": "Theme",
         "light_theme": "Light", "dark_theme": "Dark",
+        "menu_fav": "⭐ Favorites",
+        "fav_win_title": "My Favorite Dishes",
+        "fav_win_header": "⭐ Favorite Recipes",
+        "fav_empty": "The list is empty",
         
         "search_btn": "Find Recipes", "add_btn": "Add Recipe", "del_btn": "Delete",
         "update_btn": "Update", "save_btn": "Save", "cancel_btn": "Cancel",
@@ -169,12 +177,9 @@ class RecipeView(tk.Tk):
         self.menubar = tk.Menu(self, borderwidth=0, tearoff=0)
         self.config(menu=self.menubar)
     
-        # Далі у вас там йде створення підменю (Мова, Тема), 
-        # переконайтеся, що вони теж мають self.
         self.lang_menu = tk.Menu(self.menubar, tearoff=0)
         self.theme_menu = tk.Menu(self.menubar, tearoff=0)
     
-        # Додаємо їх у головну стрічку (menubar)
         self.menubar.add_cascade(label="Мова", menu=self.lang_menu) # Індекс 0
         self.menubar.add_cascade(label="Тема", menu=self.theme_menu) # Індекс 1
 
@@ -207,7 +212,7 @@ class RecipeView(tk.Tk):
         self._build_search_tab()
         self._build_manage_tab()
 
-    # --- Вкладка: ПОШУК (Компактна версія) ---
+    # Вкладка: ПОШУК 
     def _build_search_tab(self):
         # Ліва панель фільтрів
         self.search_side_frame = CustomFrame(self.tab_search) 
@@ -301,7 +306,7 @@ class RecipeView(tk.Tk):
         self.search_tree.pack(side=tk.LEFT, expand=True, fill="both")
         scr.pack(side=tk.LEFT, fill=tk.Y)
         
-    # --- Вкладка: КЕРУВАННЯ ---
+    # Вкладка: КЕРУВАННЯ
     def _build_manage_tab(self):
         # Ліва панель (Форма)
         self.form_frame = CustomFrame(self.tab_manage, padx=20, pady=20)
@@ -433,10 +438,9 @@ class RecipeView(tk.Tk):
     def apply_theme(self):
         c = self.themes[self.current_theme]
         
-        # Основний фон вікна
         self.config(bg=c["bg"])
         
-        # Верхня панель (Header) та Логотип
+        # Верхня панель та Логотип
         if hasattr(self, 'header_frame'):
             self.header_frame.config(bg=c["header"])
         if hasattr(self, 'lbl_logo'):
@@ -502,9 +506,7 @@ class RecipeView(tk.Tk):
         self.t = TRANSLATIONS[self.current_lang]
         self.title(self.t["title"])
         
-        # ==========================================
         # 1. ВКЛАДКИ ТА ПІДМЕНЮ
-        # ==========================================
         self.lang_menu.entryconfig(0, label="Українська")
         self.lang_menu.entryconfig(1, label="English")
         self.theme_menu.entryconfig(0, label=self.t["light_theme"])
@@ -512,20 +514,23 @@ class RecipeView(tk.Tk):
         self.notebook.tab(0, text=self.t["tab_search"])
         self.notebook.tab(1, text=self.t["tab_manage"])
         
-        # ==========================================
-        # 2. ГОЛОВНЕ ЛОГО ТА ВЕРХНЄ МЕНЮ (НАЙПРОСТІШЕ)
-        # ==========================================
+        # 2. ГОЛОВНЕ ЛОГО ТА ВЕРХНЄ МЕНЮ
         if hasattr(self, 'lbl_logo'):
             self.lbl_logo.config(text="🍽  " + self.t["app_title"])
             
         if hasattr(self, 'menubar'):
-        # Використовуємо індекси 0 та 1
-            self.menubar.entryconfig(0, label="🌎 " + self.t["menu_lang"])
-            self.menubar.entryconfig(1, label="🎨 " + self.t["menu_theme"])
+            last_idx = self.menubar.index("end")
+            
+            if last_idx >= 0:
+                self.menubar.entryconfig(0, label="🌎 " + self.t["menu_lang"])
+            
+            if last_idx >= 1:
+                self.menubar.entryconfig(1, label="🎨 " + self.t["menu_theme"])
+                
+            if last_idx >= 2:
+                self.menubar.entryconfig(2, label=self.t["menu_fav"])  
 
-        # ==========================================
         # ВКЛАДКА "КЕРУВАННЯ БАЗОЮ"
-        # ==========================================
         if hasattr(self, 'lbl_form_title'):
             # Заголовки та підказки
             self.lbl_form_title.config(text=self.t["add_edit_lbl"])
@@ -572,10 +577,9 @@ class RecipeView(tk.Tk):
             self.manage_tree.heading("time", text=self.t["time_lbl"])
             self.manage_tree.heading("diff", text=self.t["diff_lbl"])
 
-        # ==========================================
-        # ВКЛАДКА "ПОШУК"
-        # ==========================================
+        # ВКЛАДКА ПОШУК
         if hasattr(self, 'lbl_filter_header'):
+
             # Заголовки фільтрів
             self.lbl_filter_header.config(text=self.t["filters_lbl"])
             self.lbl_search_avail.config(text=self.t["avail_ing_lbl"])
@@ -584,6 +588,7 @@ class RecipeView(tk.Tk):
             self.lbl_search_diff_title.config(text=self.t["diff_lbl"])
             self.lbl_search_cat_title.config(text=self.t["cat_lbl"])
             self.lbl_search_results_header.config(text=self.t["search_res_lbl"])
+
             
             # Галочки складності та кнопка
             self.ch_easy.config(text=self.t["easy"])
@@ -622,34 +627,37 @@ class RecipeView(tk.Tk):
                 if ing in selected_set: lb.selection_set(tk.END)
                 
     def update_category_widgets(self, categories):
-        # Очищаємо фрейм
         for widget in self.cat_checks_frame.winfo_children():
             widget.destroy()
-        
+    
         self.cat_vars = {}
-        
-        # Створюємо галочки
+
+        num_columns = 4 
+    
         for i, cat in enumerate(categories):
-            # Ми не хочемо, щоб галочки скидалися при зміні мови, 
-            # але для простоти зараз ставимо False або True за замовчуванням
             var = tk.BooleanVar(value=True) 
             self.cat_vars[cat] = var
-            
-            # --- МАГІЯ ПЕРЕКЛАДУ ТУТ ---
-            # Шукаємо переклад у словнику. Якщо не знайшли — лишаємо як є (cat)
+        
             display_name = self.t.get(cat, cat)
-            # ---------------------------
-            
+        
             cb = tk.Checkbutton(
                 self.cat_checks_frame, 
-                text=display_name, # Тепер тут перекладена назва!
+                text=display_name,
                 variable=var,
                 bg=self.themes[self.current_theme]["surface"],
                 fg=self.themes[self.current_theme]["fg"],
                 selectcolor=self.themes[self.current_theme]["input_bg"],
-                activebackground=self.themes[self.current_theme]["surface"]
+                activebackground=self.themes[self.current_theme]["surface"],
+                font=self.fonts["main"]
             )
-            cb.grid(row=i // 2, column=i % 2, sticky="w", padx=5, pady=2)
+        
+            row_idx = i // num_columns
+            col_idx = i % num_columns
+        
+            cb.grid(row=row_idx, column=col_idx, sticky="w", padx=10, pady=2)
+
+        for c in range(num_columns):
+            self.cat_checks_frame.columnconfigure(c, weight=1)
 
     def fill_form(self, r):
         self.clear_form()
@@ -674,50 +682,61 @@ class RecipeView(tk.Tk):
         self.combo_cat.set("")
         self.diff_var.set("none")
         
-        # Повертаємо кнопці оригінальний текст "Додати" через словник
         self.btn_add.config(text=self.t.get("add_btn", "Додати рецепт"))
         
     def _center_window(self, width, height):
         self.geometry(f"{width}x{height}+{int((self.winfo_screenwidth()/2)-(width/2))}+{int((self.winfo_screenheight()/2)-(height/2))}")
 
-    def show_custom_details_dialog(self, r):
+    def show_custom_details_dialog(self, r, toggle_fav_cb=None, export_cb=None):
         c = self.themes[self.current_theme]
         d = tk.Toplevel(self)
-        d.title(r["name"]); d.geometry("450x600"); d.config(bg=c["surface"])
+        d.title(r["name"])
+        d.geometry("450x700")
+        d.config(bg=c["surface"])
         
-        tk.Label(d, text=r["name"], font=self.fonts["logo"], fg=c["accent"], bg=c["surface"]).pack(pady=(25, 5))
+        header_frame = tk.Frame(d, bg=c["surface"])
+        header_frame.pack(pady=(25, 5))
+
+        tk.Label(header_frame, text=r["name"], font=self.fonts["logo"], 
+                 fg=c["accent"], bg=c["surface"]).pack(side=tk.LEFT)
         
-        # --- Спрощена логіка (в базі тепер завжди українська) ---
+        is_fav = r.get("is_favorite", False)
+        star_symbol = "★" if is_fav else "☆"
+        fav_color = "#3498db" if is_fav else c["fg_muted"]
+
+        star_lbl = tk.Label(header_frame, text=star_symbol, font=("Arial", 24), 
+                            fg=fav_color, bg=c["surface"], cursor="hand2")
+        star_lbl.pack(side=tk.LEFT, padx=10)
+
+        if toggle_fav_cb:
+            star_lbl.bind("<Button-1>", lambda e: toggle_fav_cb(r["name"], star_lbl))
+        
         saved_cat = r.get('category', 'Інше')
         cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше"]
         cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Other"]
         
-        if self.current_lang == "en" and saved_cat in cats_uk:
-            display_cat = cats_en[cats_uk.index(saved_cat)]
-        else:
-            display_cat = saved_cat
-        # --------------------------------------------------------
-        
+        display_cat = cats_en[cats_uk.index(saved_cat)] if self.current_lang == "en" and saved_cat in cats_uk else saved_cat
         time_text = "хв" if self.current_lang == "uk" else "min"
         
         tk.Label(d, text=f"⏱ {r['time']} {time_text}   •   📊 {self.t.get(r['difficulty'], r['difficulty'])}   •   🍽 {display_cat}", 
                  font=self.fonts["bold"], bg=c["surface"], fg=c["fg_muted"]).pack(pady=(0, 20))
         
         tk.Label(d, text=self.t['ing_lbl'], font=self.fonts["heading"], bg=c["surface"], fg=c["fg"]).pack(anchor="w", padx=30)
-        
         ing_text = " • " + "\n • ".join(r['ingredients'])
         tk.Label(d, text=ing_text, wraplength=400, justify="left", font=self.fonts["main"], bg=c["surface"], fg=c["fg"]).pack(anchor="w", padx=40, pady=(10, 20))
         
         tk.Label(d, text=self.t['inst_lbl'], font=self.fonts["heading"], bg=c["surface"], fg=c["fg"]).pack(anchor="w", padx=30)
-        
         t_frame = CustomFrame(d, padx=30, pady=10)
         t_frame.pack(fill=tk.BOTH, expand=True)
         tbox = tk.Text(t_frame, bg=c["input_bg"], fg=c["fg"], wrap="word", height=8, borderwidth=0, font=self.fonts["main"], padx=10, pady=10)
-        
         scr_d = ttk.Scrollbar(t_frame, command=tbox.yview); tbox.configure(yscrollcommand=scr_d.set)
         tbox.insert("1.0", r["instructions"]); tbox.config(state="disabled")
         tbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True); scr_d.pack(side=tk.LEFT, fill=tk.Y)
         
-        # Переклали і кнопку "Закрити"
+        export_text = "💾 Зберегти рецепт (.txt)" if self.current_lang == "uk" else "💾 Save recipe (.txt)"
+        btn_export = ttk.Button(d, text=export_text, style="Accent.TButton", 
+                                command=lambda: export_cb(r) if export_cb else None)
+        btn_export.pack(pady=(15, 0), padx=30, fill=tk.X)
+
         close_text = "Закрити" if self.current_lang == "uk" else "Close"
-        ttk.Button(d, text=close_text, style="Accent.TButton", command=d.destroy).pack(pady=20, padx=30, fill=tk.X)
+        ttk.Button(d, text=close_text, command=d.destroy).pack(pady=15, padx=30, fill=tk.X)
