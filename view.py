@@ -4,51 +4,67 @@ from tkinter import ttk
 TRANSLATIONS = {
     "uk": {
         "title": "Книга рецептів",
+        "app_title": "КНИГА РЕЦЕПТІВ",
         "tab_search": "Пошук страв", "tab_manage": "Керування базою",
+        "menu_lang": "Мова", "menu_theme": "Тема",
         "lang_menu": "Мова", "theme_menu": "Тема",
         "light_theme": "Світла", "dark_theme": "Темна",
+        
         "search_btn": "Знайти рецепти", "add_btn": "Додати рецепт", "del_btn": "Видалити",
+        "update_btn": "Оновити", "save_btn": "Зберегти", "cancel_btn": "Скасувати",
+        
         "name_lbl": "Назва:", "cat_lbl": "Категорія:", "ing_lbl": "Інгредієнти:",
         "inst_lbl": "Інструкції:", "time_lbl": "Час (хв):", "diff_lbl": "Складність:",
+        
         "easy": "Легко", "medium": "Середньо", "hard": "Складно",
         "avail_ing_lbl": "Включити:", "excl_ing_lbl": "Виключити:",
-        "max_time_lbl": "Макс. час:", "search_res_lbl": "Результати",
-        "update_btn": "Оновити",
-        "save_btn": "Зберегти",
-        "cancel_btn": "Скасувати",
+        "max_time_lbl": "Макс. час:", 
+        
+        "filters_lbl": "Фільтри", "search_res_lbl": "Результати",
+        "add_edit_lbl": "Додати / Редагувати", "base_title_lbl": "База страв",
+        "search_toggle_lbl": "🔍 Пошук", "search_hint_lbl": "Почніть вводити назву...",
+        
         "confirm_del_title": "Підтвердження",
         "confirm_del_msg": "Ви впевнені, що хочете видалити цей рецепт?",
         "error_title": "Помилка",
         "fields_error": "Будь ласка, заповніть всі обов'язкові поля!",
         "error_diff": "Будь ласка, оберіть складність страви!",
-        "categories": ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше" ],
-        "app_title": "КНИГА РЕЦЕПТІВ",
-        "menu_lang": "Мова",
-        "menu_theme": "Тема"
+        
+        "categories": ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше"],
+        "Сніданок": "Сніданок", "Обід": "Обід", "Вечеря": "Вечеря", 
+        "Десерт": "Десерт", "Закуска": "Закуска", "Інше": "Інше"
     },
     "en": {
         "title": "Recipe Book",
+        "app_title": "RECIPE BOOK",
         "tab_search": "Search", "tab_manage": "Manage DB",
+        "menu_lang": "Language", "menu_theme": "Theme",
         "lang_menu": "Language", "theme_menu": "Theme",
         "light_theme": "Light", "dark_theme": "Dark",
+        
         "search_btn": "Find Recipes", "add_btn": "Add Recipe", "del_btn": "Delete",
+        "update_btn": "Update", "save_btn": "Save", "cancel_btn": "Cancel",
+        
         "name_lbl": "Name:", "cat_lbl": "Category:", "ing_lbl": "Ingredients:",
         "inst_lbl": "Instructions:", "time_lbl": "Time (min):", "diff_lbl": "Difficulty:",
+        
         "easy": "Easy", "medium": "Medium", "hard": "Hard",
-        "avail_ing_lbl": "Available:", "excl_ing_lbl": "Exclude:",
-        "max_time_lbl": "Max time:", "search_res_lbl": "Results",
-        "update_btn": "Update",
-        "save_btn": "Save",
-        "cancel_btn": "Cancel",
+        "avail_ing_lbl": "Include:", "excl_ing_lbl": "Exclude:",
+        "max_time_lbl": "Max time:", 
+        
+        "filters_lbl": "Filters", "search_res_lbl": "Results",
+        "add_edit_lbl": "Add / Edit", "base_title_lbl": "Recipe Base",
+        "search_toggle_lbl": "🔍 Search", "search_hint_lbl": "Start typing name...",
+        
         "confirm_del_title": "Confirm",
         "confirm_del_msg": "Are you sure you want to delete this recipe?",
         "error_title": "Error",
         "fields_error": "Please fill in all fields!",
         "error_diff": "Please select the difficulty level!",
+        
         "categories": ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Other"],
-        "app_title": "RECIPE BOOK",
-        "menu_lang": "Language",
-        "menu_theme": "Theme"
+        "Сніданок": "Breakfast", "Обід": "Lunch", "Вечеря": "Dinner", 
+        "Десерт": "Dessert", "Закуска": "Snack", "Інше": "Other"
     }
 }
 
@@ -99,7 +115,7 @@ class RecipeView(tk.Tk):
                 "input_bg": "#1F2937",    
                 "danger": "#F43F5E"
             }
-        }
+}
         self.current_theme = "light"
         
         self._manage_sort_col = None
@@ -149,14 +165,18 @@ class RecipeView(tk.Tk):
         self.style.configure("TCombobox", padding=6, borderwidth=0)
 
     def create_menu(self):
-        menubar = tk.Menu(self, borderwidth=0)
-        self.config(menu=menubar)
-        
-        self.lang_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="🌍 " + self.t["lang_menu"], menu=self.lang_menu)
-        
-        self.theme_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="🎨 " + self.t["theme_menu"], menu=self.theme_menu)
+        # Додаємо self., щоб меню було доступне всюди в коді
+        self.menubar = tk.Menu(self, borderwidth=0, tearoff=0)
+        self.config(menu=self.menubar)
+    
+        # Далі у вас там йде створення підменю (Мова, Тема), 
+        # переконайтеся, що вони теж мають self.
+        self.lang_menu = tk.Menu(self.menubar, tearoff=0)
+        self.theme_menu = tk.Menu(self.menubar, tearoff=0)
+    
+        # Додаємо їх у головну стрічку (menubar)
+        self.menubar.add_cascade(label="Мова", menu=self.lang_menu) # Індекс 0
+        self.menubar.add_cascade(label="Тема", menu=self.theme_menu) # Індекс 1
 
     def _build_header(self):
         c = self.themes[self.current_theme]
@@ -189,105 +209,122 @@ class RecipeView(tk.Tk):
 
     # --- Вкладка: ПОШУК (Компактна версія) ---
     def _build_search_tab(self):
-        # Зменшено відступи: padx=15, pady=15
-        self.search_side_frame = CustomFrame(self.tab_search, padx=15, pady=15)
+        # Ліва панель фільтрів
+        self.search_side_frame = CustomFrame(self.tab_search) 
         self.search_side_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 15), pady=10)
 
-        tk.Label(self.search_side_frame, text="Фільтри", font=self.fonts["heading"]).pack(anchor="w", pady=(0, 10))
+        # Фрейм кнопки Знайти (завжди внизу)
+        self.bottom_action_frame = tk.Frame(self.search_side_frame, bg=self.themes[self.current_theme]["surface"])
+        self.bottom_action_frame.pack(side=tk.BOTTOM, fill=tk.X)
+        self.btn_search = ttk.Button(self.bottom_action_frame, text=self.t["search_btn"], style="Accent.TButton")
+        self.btn_search.pack(fill=tk.X, padx=15, pady=15)
 
-        # Маю
-        tk.Label(self.search_side_frame, text=self.t["avail_ing_lbl"], font=self.fonts["bold"]).pack(anchor="w")
+        # Зона прокрутки фільтрів
+        self.canvas = tk.Canvas(self.search_side_frame, bg=self.themes[self.current_theme]["surface"], highlightthickness=0)
+        self.scrollbar = ttk.Scrollbar(self.search_side_frame, orient="vertical", command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.filters_frame = CustomFrame(self.canvas, padx=15, pady=15)
+        self.canvas_window = self.canvas.create_window((0, 0), window=self.filters_frame, anchor="nw")
+        self.filters_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        self.canvas.bind("<Configure>", lambda e: self.canvas.itemconfig(self.canvas_window, width=e.width))
+
+        # Заголовок Фільтри
+        self.lbl_filter_header = tk.Label(self.filters_frame, text=self.t["filters_lbl"], font=self.fonts["heading"])
+        self.lbl_filter_header.pack(anchor="w", pady=(0, 10))
+
+        # Інгредієнти Включити
+        self.lbl_search_avail = tk.Label(self.filters_frame, text=self.t["avail_ing_lbl"], font=self.fonts["bold"])
+        self.lbl_search_avail.pack(anchor="w")
         self.filter_avail_var = tk.StringVar()
-        self.entry_filter_avail = ttk.Entry(self.search_side_frame, textvariable=self.filter_avail_var)
+        self.entry_filter_avail = ttk.Entry(self.filters_frame, textvariable=self.filter_avail_var)
         self.entry_filter_avail.pack(fill=tk.X, pady=(2, 2))
         self.entry_filter_avail.bind("<KeyRelease>", lambda e: self.filter_ingredients("avail"))
-        
-        self.ing_listbox = tk.Listbox(self.search_side_frame, selectmode=tk.MULTIPLE, exportselection=0, height=3)
+        self.ing_listbox = tk.Listbox(self.filters_frame, selectmode=tk.MULTIPLE, exportselection=0, height=3)
         self.ing_listbox.pack(fill=tk.X, pady=(0, 10))
 
-        # Не маю
-        tk.Label(self.search_side_frame, text=self.t["excl_ing_lbl"], font=self.fonts["bold"]).pack(anchor="w")
+        # Інгредієнти Виключити
+        self.lbl_search_excl = tk.Label(self.filters_frame, text=self.t["excl_ing_lbl"], font=self.fonts["bold"])
+        self.lbl_search_excl.pack(anchor="w")
         self.filter_excl_var = tk.StringVar()
-        self.entry_filter_excl = ttk.Entry(self.search_side_frame, textvariable=self.filter_excl_var)
+        self.entry_filter_excl = ttk.Entry(self.filters_frame, textvariable=self.filter_excl_var)
         self.entry_filter_excl.pack(fill=tk.X, pady=(2, 2))
         self.entry_filter_excl.bind("<KeyRelease>", lambda e: self.filter_ingredients("excl"))
-        
-        self.excl_listbox = tk.Listbox(self.search_side_frame, selectmode=tk.MULTIPLE, exportselection=0, height=3)
+        self.excl_listbox = tk.Listbox(self.filters_frame, selectmode=tk.MULTIPLE, exportselection=0, height=3)
         self.excl_listbox.pack(fill=tk.X, pady=(0, 10))
 
-        # Повзунок часу
-        tk.Label(self.search_side_frame, text=self.t["max_time_lbl"], font=self.fonts["bold"]).pack(anchor="w")
-        self.search_time_scale = tk.Scale(self.search_side_frame, from_=5, to=120, orient=tk.HORIZONTAL, resolution=5, sliderlength=15, width=12)
+        # Макс. Час
+        self.lbl_search_time = tk.Label(self.filters_frame, text=self.t["max_time_lbl"], font=self.fonts["bold"])
+        self.lbl_search_time.pack(anchor="w")
+        self.search_time_scale = tk.Scale(self.filters_frame, from_=5, to=120, orient=tk.HORIZONTAL, resolution=5, sliderlength=15, width=12)
         self.search_time_scale.set(120)
         self.search_time_scale.pack(fill=tk.X, pady=(0, 10))
 
         # Складність
-        tk.Label(self.search_side_frame, text=self.t["diff_lbl"], font=self.fonts["bold"]).pack(anchor="w")
-        diff_f = CustomFrame(self.search_side_frame)
+        self.lbl_search_diff_title = tk.Label(self.filters_frame, text=self.t["diff_lbl"], font=self.fonts["bold"])
+        self.lbl_search_diff_title.pack(anchor="w")
+        diff_f = CustomFrame(self.filters_frame)
         diff_f.pack(fill=tk.X, pady=(2, 10))
         
         self.search_diff_easy, self.search_diff_med, self.search_diff_hard = tk.BooleanVar(value=True), tk.BooleanVar(value=True), tk.BooleanVar(value=True)
-        tk.Checkbutton(diff_f, text="Легко", variable=self.search_diff_easy).pack(side=tk.LEFT, padx=(0,5))
-        tk.Checkbutton(diff_f, text="Середньо", variable=self.search_diff_med).pack(side=tk.LEFT, padx=(0,5))
-        tk.Checkbutton(diff_f, text="Складно", variable=self.search_diff_hard).pack(side=tk.LEFT)
+        self.ch_easy = tk.Checkbutton(diff_f, text=self.t["easy"], variable=self.search_diff_easy)
+        self.ch_easy.pack(side=tk.LEFT, padx=(0,5))
+        self.ch_med = tk.Checkbutton(diff_f, text=self.t["medium"], variable=self.search_diff_med)
+        self.ch_med.pack(side=tk.LEFT, padx=(0,5))
+        self.ch_hard = tk.Checkbutton(diff_f, text=self.t["hard"], variable=self.search_diff_hard)
+        self.ch_hard.pack(side=tk.LEFT)
         
-        # --- Фільтр категорій ---
-        self.lbl_search_cat_title = tk.Label(self.search_side_frame, text=self.t.get("cat_lbl", "Категорія:"), font=self.fonts["bold"])
+        # Категорії
+        self.lbl_search_cat_title = tk.Label(self.filters_frame, text=self.t["cat_lbl"], font=self.fonts["bold"])
         self.lbl_search_cat_title.pack(anchor="w", pady=(10, 0))
-
-        # Фрейм, де будуть з'являтися галочки
-        self.cat_checks_frame = tk.Frame(self.search_side_frame, bg=self.themes[self.current_theme]["surface"])
+        self.cat_checks_frame = tk.Frame(self.filters_frame, bg=self.themes[self.current_theme]["surface"])
         self.cat_checks_frame.pack(fill=tk.X, pady=5)
-        
-        # Тут ми будемо зберігати змінні та самі віджети галочок
         self.cat_vars = {}
-        
-        # Кнопка Знайти прикріплена до НИЗУ (BOTTOM)
-        self.btn_search = ttk.Button(self.search_side_frame, text=self.t["search_btn"], style="Accent.TButton")
-        self.btn_search.pack(side=tk.BOTTOM, fill=tk.X, pady=(10, 0))
 
-        # Права панель
+        # Права панель результатів
         self.search_main_frame = CustomFrame(self.tab_search, padx=20, pady=20)
         self.search_main_frame.pack(side=tk.LEFT, expand=True, fill="both", pady=10)
-        tk.Label(self.search_main_frame, text=self.t["search_res_lbl"], font=self.fonts["heading"]).pack(anchor="w", pady=(0, 10))
+        self.lbl_search_results_header = tk.Label(self.search_main_frame, text=self.t["search_res_lbl"], font=self.fonts["heading"])
+        self.lbl_search_results_header.pack(anchor="w", pady=(0, 10))
 
-        # Додаємо "cat" у список колонок
+        # Таблиця
         self.search_tree = ttk.Treeview(self.search_main_frame, columns=("name", "cat", "time", "diff"), show="headings")
-        
-        # Налаштовуємо нову колонку
         self.search_tree.heading("name", text=self.t["name_lbl"]); self.search_tree.column("name", width=250)
         self.search_tree.heading("cat", text=self.t["cat_lbl"]); self.search_tree.column("cat", width=120, anchor="center")
         self.search_tree.heading("time", text=self.t["time_lbl"]); self.search_tree.column("time", width=80, anchor="center")
         self.search_tree.heading("diff", text=self.t["diff_lbl"]); self.search_tree.column("diff", width=120, anchor="center")
         
-        scr = ttk.Scrollbar(self.search_main_frame, command=self.search_tree.yview); self.search_tree.configure(yscrollcommand=scr.set)
-        self.search_tree.pack(side=tk.LEFT, expand=True, fill="both"); scr.pack(side=tk.LEFT, fill=tk.Y)
+        scr = ttk.Scrollbar(self.search_main_frame, command=self.search_tree.yview)
+        self.search_tree.configure(yscrollcommand=scr.set)
+        self.search_tree.pack(side=tk.LEFT, expand=True, fill="both")
+        scr.pack(side=tk.LEFT, fill=tk.Y)
         
     # --- Вкладка: КЕРУВАННЯ ---
     def _build_manage_tab(self):
+        # Ліва панель (Форма)
         self.form_frame = CustomFrame(self.tab_manage, padx=20, pady=20)
         self.form_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 15), pady=10)
 
-        # ДОДАНО self.lbl_form_title
-        self.lbl_form_title = tk.Label(self.form_frame, text="Додати / Редагувати", font=self.fonts["heading"])
+        self.lbl_form_title = tk.Label(self.form_frame, text=self.t["add_edit_lbl"], font=self.fonts["heading"])
         self.lbl_form_title.grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 20))
 
-        # Налаштування відступів для полів форми
         grid_p = {"sticky": "w", "pady": 8}
         
-        # ДОДАНО self.lbl_name
+        # Поле Назва
         self.lbl_name = tk.Label(self.form_frame, text=self.t['name_lbl'], font=self.fonts["bold"])
         self.lbl_name.grid(row=1, column=0, **grid_p)
         self.entry_name = ttk.Entry(self.form_frame, width=32)
         self.entry_name.grid(row=1, column=1, **grid_p, padx=(10,0))
 
-        # ДОДАНО self.lbl_time
+        # Поле Час
         self.lbl_time = tk.Label(self.form_frame, text=self.t['time_lbl'], font=self.fonts["bold"])
         self.lbl_time.grid(row=2, column=0, **grid_p)
         self.time_scale = tk.Scale(self.form_frame, from_=5, to=120, orient=tk.HORIZONTAL, resolution=5, sliderlength=15, width=12)
         self.time_scale.grid(row=2, column=1, sticky="ew", padx=(10,0))
 
-        # ДОДАНО self.lbl_diff
+        # Поле Складність (Радіокнопки)
         self.lbl_diff = tk.Label(self.form_frame, text=self.t['diff_lbl'], font=self.fonts["bold"])
         self.lbl_diff.grid(row=3, column=0, **grid_p)
         
@@ -295,7 +332,6 @@ class RecipeView(tk.Tk):
         radio_f = CustomFrame(self.form_frame)
         radio_f.grid(row=3, column=1, sticky="w", padx=(10,0))
         
-        # ДОДАНО self.rb_easy, self.rb_med, self.rb_hard
         self.rb_easy = tk.Radiobutton(radio_f, text=self.t["easy"], variable=self.diff_var, value="easy")
         self.rb_easy.pack(side=tk.LEFT, padx=(0,5))
         self.rb_med = tk.Radiobutton(radio_f, text=self.t["medium"], variable=self.diff_var, value="medium")
@@ -303,79 +339,78 @@ class RecipeView(tk.Tk):
         self.rb_hard = tk.Radiobutton(radio_f, text=self.t["hard"], variable=self.diff_var, value="hard")
         self.rb_hard.pack(side=tk.LEFT)
 
-        # ДОДАНО self.lbl_cat
+        # Комбобокс Категорія
         self.lbl_cat = tk.Label(self.form_frame, text=self.t['cat_lbl'], font=self.fonts["bold"])
         self.lbl_cat.grid(row=4, column=0, **grid_p)
-        
-        # ВИПРАВЛЕНО: беремо значення зі словника (self.t["categories"])
-        self.combo_cat = ttk.Combobox(self.form_frame, values=self.t.get("categories", ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше"]), state="readonly", width=30)
+        self.combo_cat = ttk.Combobox(self.form_frame, values=self.t.get("categories", []), state="readonly", width=30)
         self.combo_cat.current(0)
         self.combo_cat.grid(row=4, column=1, **grid_p, padx=(10,0))
 
-        # ДОДАНО self.lbl_ing
+        # Поле Інгредієнти
         self.lbl_ing = tk.Label(self.form_frame, text=self.t['ing_lbl'], font=self.fonts["bold"])
         self.lbl_ing.grid(row=5, column=0, sticky="nw", pady=(8,0))
         self.entry_ing = ttk.Entry(self.form_frame, width=32)
         self.entry_ing.grid(row=5, column=1, sticky="ew", padx=(10,0), pady=(8,0))
 
-        # ДОДАНО self.lbl_inst
+        # Поле Інструкції
         self.lbl_inst = tk.Label(self.form_frame, text=self.t['inst_lbl'], font=self.fonts["bold"])
         self.lbl_inst.grid(row=6, column=0, sticky="nw", pady=(15,0))
         self.text_inst_frame = CustomFrame(self.form_frame)
         self.text_inst_frame.grid(row=6, column=1, sticky="ew", padx=(10,0), pady=(15,0))
         
         self.text_inst = tk.Text(self.text_inst_frame, height=5, width=30, wrap="word", font=self.fonts["main"])
-        scr_t = ttk.Scrollbar(self.text_inst_frame, command=self.text_inst.yview); self.text_inst.configure(yscrollcommand=scr_t.set)
-        self.text_inst.pack(side=tk.LEFT, expand=True, fill="both"); scr_t.pack(side=tk.LEFT, fill=tk.Y)
+        scr_t = ttk.Scrollbar(self.text_inst_frame, command=self.text_inst.yview)
+        self.text_inst.configure(yscrollcommand=scr_t.set)
+        self.text_inst.pack(side=tk.LEFT, expand=True, fill="both")
+        scr_t.pack(side=tk.LEFT, fill=tk.Y)
 
+        # Кнопки дій (Зберегти, Видалити і т.д.)
         act_f = CustomFrame(self.form_frame)
         act_f.grid(row=7, column=0, columnspan=2, pady=(20, 0), sticky="ew")
         self.btn_add = ttk.Button(act_f, text=self.t["add_btn"], style="Accent.TButton")
         self.btn_add.pack(fill=tk.X, pady=(0, 8))
         self.btn_update = ttk.Button(act_f, text=self.t["update_btn"])
         self.btn_update.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=(0, 4))
-        
         self.btn_delete = ttk.Button(act_f, text=self.t["del_btn"])
         self.btn_delete.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=(0, 4))
-        
-        self.btn_cancel = ttk.Button(act_f, text=self.t.get("cancel_btn", "Скасувати"), command=self.clear_form)
+        self.btn_cancel = ttk.Button(act_f, text=self.t["cancel_btn"], command=self.clear_form)
         self.btn_cancel.pack(side=tk.LEFT, expand=True, fill=tk.X)
 
-        # Права панель з таблицею
+        # Права панель (Таблиця бази)
         self.manage_main_frame = CustomFrame(self.tab_manage, padx=20, pady=20)
         self.manage_main_frame.pack(side=tk.LEFT, expand=True, fill="both", pady=10)
 
+        # Шапка таблиці з пошуком
         list_header = CustomFrame(self.manage_main_frame)
         list_header.pack(fill=tk.X, pady=(0, 10))
         
-        # ДОДАНО self.lbl_base_title
-        self.lbl_base_title = tk.Label(list_header, text="База страв", font=self.fonts["heading"])
+        self.lbl_base_title = tk.Label(list_header, text=self.t["base_title_lbl"], font=self.fonts["heading"])
         self.lbl_base_title.pack(side=tk.LEFT)
-        
-        self.btn_toggle_search = ttk.Button(list_header, text="🔍 Пошук", command=self._toggle_search_bar)
+        self.btn_toggle_search = ttk.Button(list_header, text=self.t["search_toggle_lbl"], command=self._toggle_search_bar)
         self.btn_toggle_search.pack(side=tk.RIGHT)
 
         self.hidden_search_frame = CustomFrame(self.manage_main_frame)
-        
         self.search_ing_var = tk.StringVar()
         self.search_ing_entry = ttk.Entry(self.hidden_search_frame, textvariable=self.search_ing_var, font=self.fonts["main"])
         self.search_ing_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10), pady=10)
-        
-        # ДОДАНО self.lbl_search_hint
-        self.lbl_search_hint = tk.Label(self.hidden_search_frame, text="Почніть вводити назву...", font=self.fonts["small"], fg="#94A3B8")
+        self.lbl_search_hint = tk.Label(self.hidden_search_frame, text=self.t["search_hint_lbl"], font=self.fonts["small"], fg="#94A3B8")
         self.lbl_search_hint.pack(side=tk.LEFT)
 
-        # Замість старих 2-х колонок робимо 4
+        # Таблиця
         self.manage_tree = ttk.Treeview(self.manage_main_frame, columns=("name", "cat", "time", "diff"), show="headings")
-
-        # Налаштовуємо заголовки та ширину
-        self.manage_tree.heading("name", text=self.t["name_lbl"]); self.manage_tree.column("name", width=200)
-        self.manage_tree.heading("cat", text=self.t["cat_lbl"]); self.manage_tree.column("cat", width=120, anchor="center")
-        self.manage_tree.heading("time", text=self.t["time_lbl"]); self.manage_tree.column("time", width=80, anchor="center")
-        self.manage_tree.heading("diff", text=self.t["diff_lbl"]); self.manage_tree.column("diff", width=100, anchor="center")
+        self.manage_tree.heading("name", text=self.t["name_lbl"])
+        self.manage_tree.column("name", width=200)
+        self.manage_tree.heading("cat", text=self.t["cat_lbl"])
+        self.manage_tree.column("cat", width=120, anchor="center")
+        self.manage_tree.heading("time", text=self.t["time_lbl"])
+        self.manage_tree.column("time", width=80, anchor="center")
+        self.manage_tree.heading("diff", text=self.t["diff_lbl"])
+        self.manage_tree.column("diff", width=100, anchor="center")
         
-        scr_m = ttk.Scrollbar(self.manage_main_frame, command=self.manage_tree.yview); self.manage_tree.configure(yscrollcommand=scr_m.set)
-        self.manage_tree.pack(side=tk.LEFT, expand=True, fill="both"); scr_m.pack(side=tk.LEFT, fill=tk.Y)
+        scr_m = ttk.Scrollbar(self.manage_main_frame, command=self.manage_tree.yview)
+        self.manage_tree.configure(yscrollcommand=scr_m.set)
+        self.manage_tree.pack(side=tk.LEFT, expand=True, fill="both")
+        scr_m.pack(side=tk.LEFT, fill=tk.Y)
 
     def _toggle_search_bar(self):
         if self.search_hidden:
@@ -466,67 +501,113 @@ class RecipeView(tk.Tk):
     def update_ui_text(self):
         self.t = TRANSLATIONS[self.current_lang]
         self.title(self.t["title"])
-        self.lang_menu.entryconfig(0, label="Українська"); self.lang_menu.entryconfig(1, label="English")
-        self.theme_menu.entryconfig(0, label=self.t["light_theme"]); self.theme_menu.entryconfig(1, label=self.t["dark_theme"])
-        self.notebook.tab(0, text=self.t["tab_search"]); self.notebook.tab(1, text=self.t["tab_manage"])
         
-        # 1. Оновлюємо головний заголовок (лого)
+        # ==========================================
+        # 1. ВКЛАДКИ ТА ПІДМЕНЮ
+        # ==========================================
+        self.lang_menu.entryconfig(0, label="Українська")
+        self.lang_menu.entryconfig(1, label="English")
+        self.theme_menu.entryconfig(0, label=self.t["light_theme"])
+        self.theme_menu.entryconfig(1, label=self.t["dark_theme"])
+        self.notebook.tab(0, text=self.t["tab_search"])
+        self.notebook.tab(1, text=self.t["tab_manage"])
+        
+        # ==========================================
+        # 2. ГОЛОВНЕ ЛОГО ТА ВЕРХНЄ МЕНЮ (НАЙПРОСТІШЕ)
+        # ==========================================
         if hasattr(self, 'lbl_logo'):
             self.lbl_logo.config(text="🍽  " + self.t["app_title"])
             
-        # 2. Оновлюємо верхнє меню (Мова та Тема)
-        # У Tkinter індекси меню зазвичай починаються з 1
-        if hasattr(self, 'menu_bar'):
+        if hasattr(self, 'menubar'):
+        # Використовуємо індекси 0 та 1
+            self.menubar.entryconfig(0, label="🌎 " + self.t["menu_lang"])
+            self.menubar.entryconfig(1, label="🎨 " + self.t["menu_theme"])
+
+        # ==========================================
+        # ВКЛАДКА "КЕРУВАННЯ БАЗОЮ"
+        # ==========================================
+        if hasattr(self, 'lbl_form_title'):
+            # Заголовки та підказки
+            self.lbl_form_title.config(text=self.t["add_edit_lbl"])
+            self.lbl_base_title.config(text=self.t["base_title_lbl"])
+            self.btn_toggle_search.config(text=self.t["search_toggle_lbl"])
+            self.lbl_search_hint.config(text=self.t["search_hint_lbl"])
+            
+            # Поля форми
+            self.lbl_name.config(text=self.t["name_lbl"])
+            self.lbl_time.config(text=self.t["time_lbl"])
+            self.lbl_diff.config(text=self.t["diff_lbl"])
+            self.lbl_cat.config(text=self.t["cat_lbl"])
+            self.lbl_ing.config(text=self.t["ing_lbl"])
+            self.lbl_inst.config(text=self.t["inst_lbl"])
+            
+            # Кнопки
+            current_add_text = self.btn_add.cget("text")
+            if current_add_text in ["Зберегти", "Save"]:
+                self.btn_add.config(text=self.t["save_btn"])
+            else:
+                self.btn_add.config(text=self.t["add_btn"])
+            self.btn_cancel.config(text=self.t["cancel_btn"])
+            self.btn_update.config(text=self.t["update_btn"])
+            self.btn_delete.config(text=self.t["del_btn"])
+            
+            # Радіокнопки
+            self.rb_easy.config(text=self.t["easy"])
+            self.rb_med.config(text=self.t["medium"])
+            self.rb_hard.config(text=self.t["hard"])
+
+            # Комбобокс категорій
+            if hasattr(self, 'combo_cat'):
+                current_val = self.combo_cat.get() # Беремо поточне слово (напр. "Сніданок")
+                self.combo_cat['values'] = self.t.get("categories", [])
+                
+                # Перекладаємо це слово на нову мову і вставляємо назад у поле
+                translated_val = self.t.get(current_val, current_val)
+                self.combo_cat.set(translated_val)
+        
+
+            # Заголовки таблиці
+            self.manage_tree.heading("name", text=self.t["name_lbl"])
+            self.manage_tree.heading("cat", text=self.t["cat_lbl"])
+            self.manage_tree.heading("time", text=self.t["time_lbl"])
+            self.manage_tree.heading("diff", text=self.t["diff_lbl"])
+
+        # ==========================================
+        # ВКЛАДКА "ПОШУК"
+        # ==========================================
+        if hasattr(self, 'lbl_filter_header'):
+            # Заголовки фільтрів
+            self.lbl_filter_header.config(text=self.t["filters_lbl"])
+            self.lbl_search_avail.config(text=self.t["avail_ing_lbl"])
+            self.lbl_search_excl.config(text=self.t["excl_ing_lbl"])
+            self.lbl_search_time.config(text=self.t["max_time_lbl"])
+            self.lbl_search_diff_title.config(text=self.t["diff_lbl"])
+            self.lbl_search_cat_title.config(text=self.t["cat_lbl"])
+            self.lbl_search_results_header.config(text=self.t["search_res_lbl"])
+            
+            # Галочки складності та кнопка
+            self.ch_easy.config(text=self.t["easy"])
+            self.ch_med.config(text=self.t["medium"])
+            self.ch_hard.config(text=self.t["hard"])
+            self.btn_search.config(text=self.t["search_btn"])
+
+            # Заголовки таблиці пошуку
+            self.search_tree.heading("name", text=self.t["name_lbl"])
+            self.search_tree.heading("cat", text=self.t["cat_lbl"])
+            self.search_tree.heading("time", text=self.t["time_lbl"])
+            self.search_tree.heading("diff", text=self.t["diff_lbl"])
+            
+        # Списки інгредієнтів
+        if hasattr(self, 'ing_listbox') and hasattr(self, 'excl_listbox'):
+            self.ing_listbox.delete(0, tk.END)
+            self.excl_listbox.delete(0, tk.END)
             try:
-                self.menu_bar.entryconfig(1, label=self.t["menu_lang"])
-                self.menu_bar.entryconfig(2, label=self.t["menu_theme"])
-            except:
-                # Якщо індекси інші, спробуй 0 та 1
-                self.menu_bar.entryconfig(0, label=self.t["menu_lang"])
-                self.menu_bar.entryconfig(1, label=self.t["menu_theme"])
+                for ing in INGREDIENTS_DATA:
+                    self.ing_listbox.insert(tk.END, ing)
+                    self.excl_listbox.insert(tk.END, ing)
+            except NameError:
+                pass
 
-        # Статичні заголовки
-        self.lbl_form_title.config(text="Додати / Редагувати" if self.current_lang == "uk" else "Add / Edit")
-        self.lbl_base_title.config(text="База страв" if self.current_lang == "uk" else "Recipe Base")
-        self.btn_toggle_search.config(text="🔍 Пошук" if self.current_lang == "uk" else "🔍 Search")
-        self.lbl_search_hint.config(text="Почніть вводити назву..." if self.current_lang == "uk" else "Start typing name...")
-        
-        # Поля форми
-        self.lbl_name.config(text=self.t["name_lbl"])
-        self.lbl_time.config(text=self.t["time_lbl"])
-        self.lbl_diff.config(text=self.t["diff_lbl"])
-        self.lbl_cat.config(text=self.t["cat_lbl"])
-        self.lbl_ing.config(text=self.t["ing_lbl"])
-        self.lbl_inst.config(text=self.t["inst_lbl"])
-        
-        # Кнопки
-        current_add_text = self.btn_add.cget("text")
-        if current_add_text in ["Зберегти", "Save"]:
-            self.btn_add.config(text=self.t["save_btn"])
-        else:
-            self.btn_add.config(text=self.t["add_btn"])
-        
-        self.btn_cancel.config(text=self.t["cancel_btn"])
-        self.btn_update.config(text=self.t["update_btn"])
-        self.btn_delete.config(text=self.t["del_btn"])
-        
-        # Радіокнопки
-        self.rb_easy.config(text=self.t["easy"])
-        self.rb_med.config(text=self.t["medium"])
-        self.rb_hard.config(text=self.t["hard"])
-
-        # --- Комбобокс категорій (ВИПРАВЛЕНО ТУТ) ---
-        current_idx = self.combo_cat.current()
-        # Безпечно беремо список категорій, якщо його раптом немає у словнику - даємо дефолтний
-        self.combo_cat['values'] = self.t.get("categories", ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше"])
-        if current_idx >= 0:
-            self.combo_cat.current(current_idx)
-        
-        # Оновлення списків
-        self.ing_listbox.delete(0, tk.END); self.excl_listbox.delete(0, tk.END)
-        for ing in INGREDIENTS_DATA:
-            self.ing_listbox.insert(tk.END, ing); self.excl_listbox.insert(tk.END, ing)
-                      
     def filter_ingredients(self, mode):
         query = self.filter_avail_var.get().lower() if mode == "avail" else self.filter_excl_var.get().lower()
         lb = self.ing_listbox if mode == "avail" else self.excl_listbox
@@ -547,21 +628,27 @@ class RecipeView(tk.Tk):
         
         self.cat_vars = {}
         
-        # Використовуємо .grid() замість .pack() для створення 2-х колонок
+        # Створюємо галочки
         for i, cat in enumerate(categories):
-            var = tk.BooleanVar(value=False)
+            # Ми не хочемо, щоб галочки скидалися при зміні мови, 
+            # але для простоти зараз ставимо False або True за замовчуванням
+            var = tk.BooleanVar(value=True) 
             self.cat_vars[cat] = var
+            
+            # --- МАГІЯ ПЕРЕКЛАДУ ТУТ ---
+            # Шукаємо переклад у словнику. Якщо не знайшли — лишаємо як є (cat)
+            display_name = self.t.get(cat, cat)
+            # ---------------------------
             
             cb = tk.Checkbutton(
                 self.cat_checks_frame, 
-                text=cat, 
+                text=display_name, # Тепер тут перекладена назва!
                 variable=var,
                 bg=self.themes[self.current_theme]["surface"],
                 fg=self.themes[self.current_theme]["fg"],
                 selectcolor=self.themes[self.current_theme]["input_bg"],
                 activebackground=self.themes[self.current_theme]["surface"]
             )
-            # row=i//2 (ціла частина) дає номер рядка, column=i%2 (залишок) дає 0 або 1
             cb.grid(row=i // 2, column=i % 2, sticky="w", padx=5, pady=2)
 
     def fill_form(self, r):
@@ -602,7 +689,7 @@ class RecipeView(tk.Tk):
         
         # --- Спрощена логіка (в базі тепер завжди українська) ---
         saved_cat = r.get('category', 'Інше')
-        cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска" "Інше"]
+        cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше"]
         cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Other"]
         
         if self.current_lang == "en" and saved_cat in cats_uk:

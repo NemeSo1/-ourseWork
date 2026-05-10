@@ -78,13 +78,45 @@ class RecipeController:
 
         # --- Вбудований пошук Керування (NEW) ---
         v.search_ing_entry.bind("<KeyRelease>", lambda e: self.update_manage_list())
+        
+        if hasattr(v, 'manage_tree'):
+            v.manage_tree.bind("<Delete>", lambda event: self.delete_recipe_action())
+            v.manage_tree.bind("<BackSpace>", lambda event: self.delete_recipe_action())
+            # Замініть `self.delete_recipe_action` на вашу точну назву методу для видалення
+
+        # 2. Пошук рецепту клавішею Enter
+        # Можна прив'язати Enter до всього вікна, але краще до полів вводу на вкладці пошуку
+        # Припустимо, у вас є поле вводу інгредієнтів v.avail_ing_entry
+        if hasattr(v, 'search_dishes_action'): # Або інша назва вашого поля пошуку
+            v.search_dishes_action.bind("<Return>", lambda event: self.search_dishes_action())
+            
+        # Як альтернатива: прив'язати Enter глобально, але з перевіркою вкладки
+        if hasattr(v, 'root'):
+            v.root.bind("<Return>", self._handle_enter)
+            
+    def _handle_enter(self, event):
+        # Щоб Enter працював як "Пошук" тільки на вкладці пошуку
+        # Перевіряємо активну вкладку (якщо використовується ttk.Notebook)
+        if hasattr(self.view, 'notebook'):
+            current_tab_id = self.view.notebook.select()
+            current_tab_index = self.view.notebook.index(current_tab_id)
+            if current_tab_index == 0:  # Припустимо, що 0 - це вкладка "Пошук"
+                self.search_dishes_action() # Замініть на ваш метод пошуку
 
     # --- ЗАГАЛЬНІ ДІЇ ---
     def change_language(self, lang):
         self.view.current_lang = lang
         self.view.update_ui_text()
-        self.view.clear_form() # Очистити форму при зміні мови
-        self.update_manage_list() # Перезавантажити списки
+        self.view.clear_form()
+        self.update_manage_list() # Оновлює 2-гу вкладку
+    
+    # ДОДАЙ ЦІ РЯДКИ ДЛЯ 1-Ї ВКЛАДКИ:
+    # 1. Перемальовуємо галочки категорій (щоб вони підхопили нову мову)
+        self.refresh_category_filters()
+    
+    # 2. Якщо в таблиці пошуку вже є якісь результати, перемальовуємо їх (щоб оновився переклад в колонках)
+        if self._search_results:
+            self._fill_tree(self._search_results, self.view.search_tree, "search")
 
     def change_theme(self, theme_name):
         self.view.current_theme = theme_name
@@ -104,20 +136,21 @@ class RecipeController:
                 if any(word.startswith(search_query) for word in r["name"].lower().split())
             ]
             
-        # --- 3. ПІДГОТОВКА ДАНИХ ДЛЯ ВІДОБРАЖЕННЯ (Переклад категорій) ---
+        # --- 3. ПІДГОТОВКА ДАНИХ ДЛЯ ВІДОБРАЖЕННЯ (Переклад категорій та складності) ---
         display_recipes = []
-        cats_uk = ["Сніданок", "Обід", "Вечеря", "Десерт", "Закуска", "Інше"]
-        cats_en = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Other"]
         
         for r in self._manage_recipes:
-            # Робимо копію рецепта, щоб не змінювати оригінальні дані в моделі
+            # Робимо копію рецепта, щоб не змінювати оригінальні дані в базі (це дуже правильно!)
             r_copy = r.copy()
-            if self.view.current_lang == "en" and r_copy["category"] in cats_uk:
-                idx = cats_uk.index(r_copy["category"])
-                r_copy["category"] = cats_en[idx]
-            elif self.view.current_lang == "uk" and r_copy["category"] in cats_en:
-                idx = cats_en.index(r_copy["category"])
-                r_copy["category"] = cats_uk[idx]
+            
+            # Беремо оригінальні значення з бази (якщо їх раптом немає - даємо дефолтні)
+            raw_cat = r_copy.get("category", "Інше")
+            raw_diff = r_copy.get("difficulty", "easy") # або "Середньо", залежно від того, як ти зберігаєш
+            
+            # МАГІЯ: Перекладаємо все через наш словник одним рядком
+            r_copy["category"] = self.view.t.get(raw_cat, raw_cat)
+            r_copy["difficulty"] = self.view.t.get(raw_diff, raw_diff)
+            
             display_recipes.append(r_copy)
         # ---------------------------------------------------------------
 
@@ -126,7 +159,7 @@ class RecipeController:
         
         # Оновити заголовки (скинути стрілки)
         self.update_manage_tree_ui()
-
+        
     def update_manage_tree_ui(self):
         v = self.view
         v.set_tree_heading("manage", "name", v.t["name_lbl"], self._cmd_sort_mname)
