@@ -115,6 +115,8 @@ class RecipeController:
         self.view.current_theme = theme_name
         self.view.apply_theme()
         
+    
+        
     def export_to_txt(self, r):
         file_path = filedialog.asksaveasfilename(
             defaultextension=".txt",
@@ -315,6 +317,7 @@ class RecipeController:
         fav_win = tk.Toplevel(self.view)
         fav_win.title(self.view.t["fav_win_title"])
         fav_win.geometry("400x500")
+        fav_win.minsize(300, 400)
         c = self.view.themes[self.view.current_theme]
         fav_win.config(bg=c["surface"])
         

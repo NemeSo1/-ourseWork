@@ -95,6 +95,8 @@ class RecipeView(tk.Tk):
         self.selected_avail = set()
         self.selected_excl = set()
         self.search_hidden = True
+        self._center_window(1100, 780)
+        self.minsize(1000, 700)
         
         self.themes = {
             "light": {
@@ -111,17 +113,17 @@ class RecipeView(tk.Tk):
                 "danger": "#E11D48"       
             },
             "dark": {
-                "bg": "#0B0F19",          
-                "surface": "#111827",     
-                "header": "#080B12",      
+                "bg": "#030712",         
+                "surface": "#2D3748",     
+                "header": "#111827",    
                 "header_fg": "#FFFFFF",
-                "fg": "#F1F5F9",          
-                "fg_muted": "#94A3B8",    
+                "fg": "#F9FAFB",          
+                "fg_muted": "#9CA3AF",   
                 "accent": "#6366F1",      
-                "accent_hover": "#4F46E5",
-                "border": "#1F2937",      
-                "input_bg": "#1F2937",    
-                "danger": "#F43F5E"
+                "accent_hover": "#818CF8",
+                "border": "#374151",      
+                "input_bg": "#111827",    
+                "danger": "#EF4444"
             }
 }
         self.current_theme = "light"
@@ -438,66 +440,98 @@ class RecipeView(tk.Tk):
     def apply_theme(self):
         c = self.themes[self.current_theme]
         
+        # Головний фон вікна
         self.config(bg=c["bg"])
         
-        # Верхня панель та Логотип
+        # 1. Верхня панель (Header)
         if hasattr(self, 'header_frame'):
             self.header_frame.config(bg=c["header"])
         if hasattr(self, 'lbl_logo'):
             self.lbl_logo.config(bg=c["header"], fg=c["header_fg"])
         
-        # Налаштування стилів ttk (Notebook, Treeview, Buttons)
-        self.style.configure("TNotebook", background=c["bg"])
+        # 2. Стилі Notebook (вкладки)
+        self.style.configure("TNotebook", background=c["bg"], borderwidth=0)
         self.style.configure("TNotebook.Tab", background=c["border"], foreground=c["fg"])
         self.style.map("TNotebook.Tab", 
                        background=[("selected", c["surface"])], 
                        foreground=[("selected", c["accent"])])
         
+        # 3. Стилі Treeview (таблиці)
         self.style.configure("Treeview", 
-                             background=c["surface"], 
-                             fieldbackground=c["surface"], 
-                             foreground=c["fg"])
+                             background=c["input_bg"], 
+                             fieldbackground=c["input_bg"], 
+                             foreground=c["fg"],
+                             borderwidth=0)
         self.style.map("Treeview", 
                        background=[("selected", c["accent"])], 
-                       foreground=[("selected", c["header_fg"])])
-        self.style.configure("Treeview.Heading", background=c["bg"], foreground=c["fg_muted"])
+                       foreground=[("selected", "#FFFFFF")])
+        self.style.configure("Treeview.Heading", background=c["surface"], foreground=c["fg"], borderwidth=1)
         
+        # 4. Стилі стандартних ttk віджетів
         self.style.configure("TLabel", foreground=c["fg"], background=c["surface"])
-        self.style.configure("TCheckbutton", foreground=c["fg"], background=c["surface"])
-        self.style.configure("TRadiobutton", foreground=c["fg"], background=c["surface"])
+        self.style.configure("TEntry", fieldbackground=c["input_bg"], foreground=c["fg"])
+        self.style.configure("TCombobox", fieldbackground=c["input_bg"], foreground=c["fg"])
         
-        # Кнопки
+        # 5. Кнопки
         self.style.configure("TButton", background=c["border"], foreground=c["fg"])
         self.style.map("TButton", background=[("active", c["input_bg"])])
         
-        # Акцентна кнопка (твоя фіолетова "Add/Save")
-        self.style.configure("Accent.TButton", background=c["accent"], foreground=c["header_fg"])
+        # Акцентна кнопка (наприклад, "Знайти" або "Додати")
+        self.style.configure("Accent.TButton", background=c["accent"], foreground="#FFFFFF")
         self.style.map("Accent.TButton", background=[("active", c["accent_hover"])])
         
-        # Рекурсивне оновлення звичайних віджетів (Entry, Text і т.д.)
+        # 6. Запускаємо рекурсивне оновлення для всіх tk-віджетів (Label, Frame, Checkbutton)
         self._style_widgets(self)
 
     def _style_widgets(self, widget, current_bg=None):
         c = self.themes[self.current_theme]
         
-        if isinstance(widget, CustomFrame): bg = c["surface"]
-        elif widget == self.header_frame: bg = c["header"]
-        elif isinstance(widget, (tk.Tk, ttk.Notebook)) or (isinstance(widget, tk.Frame) and not current_bg): bg = c["bg"]
-        else: bg = current_bg
+        # Визначаємо колір фону для поточного рівня
+        if isinstance(widget, CustomFrame): 
+            bg = c["surface"]
+        elif widget == getattr(self, 'header_frame', None): 
+            bg = c["header"]
+        elif isinstance(widget, (tk.Tk, ttk.Notebook)) or (isinstance(widget, tk.Frame) and not current_bg): 
+            bg = c["bg"]
+        else: 
+            bg = current_bg
 
         try:
-            if isinstance(widget, (tk.Frame, CustomFrame)) and widget != self.header_frame:
+            if isinstance(widget, (tk.Frame, CustomFrame)) and widget != getattr(self, 'header_frame', None):
                 widget.config(bg=bg)
-            elif isinstance(widget, (tk.Label, tk.Radiobutton, tk.Checkbutton)) and widget not in (self.lbl_logo, self.lbl_subtitle):
-                widget.config(bg=bg, fg=c["fg"], selectcolor=bg, activebackground=bg, activeforeground=c["fg"])
+            
+            elif isinstance(widget, (tk.Label, tk.Radiobutton, tk.Checkbutton)):
+                if widget != getattr(self, 'lbl_logo', None):
+                    widget.config(
+                        bg=bg, 
+                        fg=c["fg"], 
+                        activebackground=bg, 
+                        activeforeground=c["fg"],
+                        selectcolor=c["input_bg"]
+                    )
+            
+            # Повзунок (Scale)
             elif isinstance(widget, tk.Scale):
-                widget.config(bg=bg, fg=c["fg"], highlightthickness=0, troughcolor=c["input_bg"], activebackground=c["accent"])
+                widget.config(bg=bg, fg=c["fg"], troughcolor=c["input_bg"], highlightthickness=0)
+            
+            # Списки та текстові поля (Listbox, Text)
             elif isinstance(widget, (tk.Listbox, tk.Text)):
-                widget.config(bg=c["input_bg"], fg=c["fg"], borderwidth=0, highlightthickness=1, 
-                              highlightbackground=c["border"], highlightcolor=c["accent"],
-                              selectbackground=c["accent"], selectforeground=c["header_fg"], relief="flat", padx=3, pady=3)
-        except: pass
+                widget.config(
+                    bg=c["input_bg"], 
+                    fg=c["fg"], 
+                    insertbackground=c["fg"],
+                    highlightbackground=c["border"],
+                    highlightcolor=c["accent"]
+                )
+            
+            # Спеціально для Canvas (якщо є прокрутка)
+            elif isinstance(widget, tk.Canvas):
+                widget.config(bg=bg, highlightthickness=0)
+                
+        except Exception:
+            pass # Деякі віджети можуть не підтримувати певні параметри
         
+        # Йдемо вглиб до дочірніх елементів
         for child in widget.winfo_children():
             self._style_widgets(child, bg)
             
@@ -692,6 +726,7 @@ class RecipeView(tk.Tk):
         d = tk.Toplevel(self)
         d.title(r["name"])
         d.geometry("450x700")
+        d.minsize(400, 600)
         d.config(bg=c["surface"])
         
         header_frame = tk.Frame(d, bg=c["surface"])
