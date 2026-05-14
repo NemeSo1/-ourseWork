@@ -14,6 +14,13 @@ TRANSLATIONS = {
         "fav_win_header": "⭐ Улюблені рецепти",
         "fav_empty": "Список порожній",
         
+        "menu_help": "Довідка",
+        "help_about": "Про програму",
+        "help_shortcuts": "Гарячі клавіші",
+        "about_text": "📖 Книга рецептів\nВерсія 1.0",
+        "shortcuts_text": "Ctrl+S — зберегти рецепт\nCtrl+N — очистити форму\nDelete — видалити вибраний рецепт\nПодвійний клік — відкрити деталі рецепту",
+
+        
         "search_btn": "Знайти рецепти", "add_btn": "Додати рецепт", "del_btn": "Видалити",
         "update_btn": "Оновити", "save_btn": "Зберегти", "cancel_btn": "Скасувати",
         
@@ -50,6 +57,11 @@ TRANSLATIONS = {
         "fav_win_header": "⭐ Favorite Recipes",
         "fav_empty": "The list is empty",
         
+        "menu_help": "Help",
+        "help_about": "About",
+        "help_shortcuts": "Keyboard Shortcuts",
+        "about_text": "📖 Recipe Book\nVersion 1.0",
+        "shortcuts_text": "Ctrl+S — save recipe\nCtrl+N — clear form\nDelete — delete selected recipe\nDouble click — open recipe details",        
         "search_btn": "Find Recipes", "add_btn": "Add Recipe", "del_btn": "Delete",
         "update_btn": "Update", "save_btn": "Save", "cancel_btn": "Cancel",
         
@@ -178,27 +190,57 @@ class RecipeView(tk.Tk):
         # Додаємо self., щоб меню було доступне всюди в коді
         self.menubar = tk.Menu(self, borderwidth=0, tearoff=0)
         self.config(menu=self.menubar)
-    
-        self.lang_menu = tk.Menu(self.menubar, tearoff=0)
+        
+        self.help_menu = tk.Menu(self.menubar, tearoff=0)
         self.theme_menu = tk.Menu(self.menubar, tearoff=0)
     
-        self.menubar.add_cascade(label="Мова", menu=self.lang_menu) # Індекс 0
-        self.menubar.add_cascade(label="Тема", menu=self.theme_menu) # Індекс 1
+        self.menubar.add_cascade(label="Довідка", menu=self.help_menu)
+        self.menubar.add_cascade(label="Тема", menu=self.theme_menu)
+        
 
     def _build_header(self):
         c = self.themes[self.current_theme]
-        
+    
         self.header_frame = tk.Frame(self, height=60, bg=c["header"])
         self.header_frame.pack(side=tk.TOP, fill=tk.X)
         self.header_frame.pack_propagate(False)
-        
+    
         self.lbl_logo = tk.Label(
-            self.header_frame, 
-            text="🍽  " + self.t["app_title"], 
-            font=self.fonts["logo"],
-            bg=c["header"],
-            fg=c["header_fg"]
-        )
+        self.header_frame, 
+        text="🍽  " + self.t["app_title"], 
+        font=self.fonts["logo"],
+        bg=c["header"],
+        fg=c["header_fg"]
+    )
+        self.lbl_logo.pack(side=tk.LEFT, padx=30, pady=10)
+
+    # Кнопки EN / UK справа
+        self.btn_lang_en = tk.Button(
+        self.header_frame, text="EN",
+        font=self.fonts["bold"],
+        bg=c["header"], fg=c["header_fg"],
+        bd=0, relief="flat", cursor="hand2",
+        activebackground=c["accent"], activeforeground="#fff",
+        padx=8, pady=4
+    )
+        self.btn_lang_en.pack(side=tk.RIGHT, padx=(0, 15))
+
+        self.btn_lang_uk = tk.Button(
+        self.header_frame, text="UK",
+        font=self.fonts["bold"],
+        bg=c["header"], fg=c["header_fg"],
+        bd=0, relief="flat", cursor="hand2",
+        activebackground=c["accent"], activeforeground="#fff",
+        padx=8, pady=4
+    )
+        self.btn_lang_uk.pack(side=tk.RIGHT, padx=(0, 4))
+
+    # Глобус
+        tk.Label(
+            self.header_frame, text="🌐",
+            font=self.fonts["main"],
+            bg=c["header"], fg=c["header_fg"]
+        ).pack(side=tk.RIGHT, padx=(0, 4))    
         self.lbl_logo.pack(side=tk.LEFT, padx=30, pady=10)
 
     def create_notebook(self):
@@ -541,8 +583,15 @@ class RecipeView(tk.Tk):
         self.title(self.t["title"])
         
         # 1. ВКЛАДКИ ТА ПІДМЕНЮ
-        self.lang_menu.entryconfig(0, label="Українська")
-        self.lang_menu.entryconfig(1, label="English")
+        if hasattr(self, 'btn_lang_uk') and hasattr(self, 'btn_lang_en'):
+            c = self.themes[self.current_theme]
+        if self.current_lang == "uk":
+            self.btn_lang_uk.config(bg=c["accent"], fg="#fff")
+            self.btn_lang_en.config(bg=c["header"], fg=c["header_fg"])
+        else:
+            self.btn_lang_en.config(bg=c["accent"], fg="#fff")
+            self.btn_lang_uk.config(bg=c["header"], fg=c["header_fg"])
+
         self.theme_menu.entryconfig(0, label=self.t["light_theme"])
         self.theme_menu.entryconfig(1, label=self.t["dark_theme"])
         self.notebook.tab(0, text=self.t["tab_search"])
@@ -554,10 +603,9 @@ class RecipeView(tk.Tk):
             
         if hasattr(self, 'menubar'):
             last_idx = self.menubar.index("end")
-            
             if last_idx >= 0:
-                self.menubar.entryconfig(0, label="🌎 " + self.t["menu_lang"])
-            
+                self.menubar.entryconfig(0, label=self.t["menu_help"])
+                
             if last_idx >= 1:
                 self.menubar.entryconfig(1, label="🎨 " + self.t["menu_theme"])
                 

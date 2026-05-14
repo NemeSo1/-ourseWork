@@ -18,12 +18,15 @@ class RecipeController:
     def setup_bindings(self):
         v = self.view
         
+        
         if hasattr(v, 'btn_cancel'):
             v.btn_cancel.config(command=self.cancel_edit_action)
             
         # Меню (збережено)
-        v.lang_menu.add_command(label="Українська", command=lambda: self.change_language("uk"))
-        v.lang_menu.add_command(label="English", command=lambda: self.change_language("en"))
+        v.btn_lang_uk.config(command=lambda: self.change_language("uk"))
+        v.btn_lang_en.config(command=lambda: self.change_language("en"))
+        v.help_menu.add_command(label=v.t["help_about"], command=self.show_about)
+        v.help_menu.add_command(label=v.t["help_shortcuts"], command=self.show_shortcuts)
         v.theme_menu.add_command(label="Light", command=lambda: self.change_theme("light"))
         v.theme_menu.add_command(label="Dark", command=lambda: self.change_theme("dark"))
 
@@ -91,6 +94,14 @@ class RecipeController:
         if hasattr(v, 'root'):
             v.root.bind("<Return>", self._handle_enter)
             
+    def show_about(self):
+        from tkinter import messagebox
+        messagebox.showinfo(self.view.t["help_about"], self.view.t["about_text"])
+
+    def show_shortcuts(self):
+        from tkinter import messagebox
+        messagebox.showinfo(self.view.t["help_shortcuts"], self.view.t["shortcuts_text"])
+            
     def _handle_enter(self, event):
         if hasattr(self.view, 'notebook'):
             current_tab_id = self.view.notebook.select()
@@ -102,6 +113,10 @@ class RecipeController:
     def change_language(self, lang):
         self.view.current_lang = lang
         self.view.update_ui_text()
+        
+        self.view.help_menu.entryconfig(0, label=self.view.t["help_about"])
+        self.view.help_menu.entryconfig(1, label=self.view.t["help_shortcuts"])
+    
         self.view.clear_form()
         self.update_manage_list()
     
